@@ -146,6 +146,7 @@ func player(in chan string, status chan int) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer os.Remove(t)
 	}
 	close(status)
 }

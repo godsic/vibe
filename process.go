@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -36,7 +35,7 @@ const (
 )
 
 const (
-	tracksPath          = ".tracks/"
+	tracksPathSuffix    = "/.tracks/"
 	OVERLOAD_PROTECTION = -8.0
 	PCM_HEADROOM        = -4.0
 	TARGET_SAMPLE_RATE  = 48
@@ -47,6 +46,8 @@ var (
 	soxArgs    = "%s -t wav -b 32 %s gain -n %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %dk gain -n %+.2g"
 	ffmpegArgs = "-y -hide_banner -i %s -af loudnorm=I=-24:LRA=14:TP=-4:print_format=json -f null /dev/null"
 	volArgs    = "%s -t wav -e signed-integer -b %d %s gain %+.2g dither"
+	homeDir, _ = os.UserHomeDir()
+	tracksPath = homeDir + tracksPathSuffix
 )
 
 func soxResample(fname string) (string, error) {
@@ -91,8 +92,15 @@ func applyGain(fname string, gain float64, src *Source) (string, error) {
 }
 
 func downloadTrack(t *tidalapi.Track) (string, error) {
+	fname := tracksPath + strconv.Itoa(t.ID)
+
+	_, err := os.Stat(fname)
+	if !os.IsNotExist(err) {
+		return fname, nil
+	}
+
 	path := new(tidalapi.TrackPath)
-	err := session.Get(tidalapi.TRACKURL, t.ID, path)
+	err = session.Get(tidalapi.TRACKURL, t.ID, path)
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +111,6 @@ func downloadTrack(t *tidalapi.Track) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	fname := tracksPath + strconv.Itoa(t.ID)
 	f, err := os.Create(fname)
 	if err != nil {
 		return "", err
@@ -173,21 +180,10 @@ func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) float64 {
 
 func processTrack(t *tidalapi.Track) (string, error) {
 
-	pattern := fmt.Sprintf("%s/%d*.final.wav", tracksPath, t.ID)
-
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return "", err
-	}
-	if matches != nil {
-		return matches[0], nil
-	}
-
 	fname, err := downloadTrack(t)
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(fname)
 
 	if t.AudioQuality == "HI_RES" {
 		fmt.Printf("MQA Decoding\t")
