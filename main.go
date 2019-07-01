@@ -64,8 +64,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for _, v := range obj.Items {
-			tracks = append(tracks, &v)
+		for i := range obj.Items {
+			tracks = append(tracks, &(obj.Items[i]))
 		}
 		break
 	case len(*playlist) > 0:
@@ -74,8 +74,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for _, v := range obj.Items {
-			tracks = append(tracks, &v)
+		for i := range obj.Items {
+			tracks = append(tracks, &(obj.Items[i]))
 		}
 		break
 	default:
