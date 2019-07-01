@@ -99,6 +99,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
+			continue
+		}
+
 		fmt.Printf("%s : %s (%s) - %s\t%s\t", t.Artist.Name, a.Title, year(a.ReleaseDate), t.Title, t.AudioQuality)
 
 		fileName, err := processTrack(t)
