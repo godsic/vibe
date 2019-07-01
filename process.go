@@ -185,7 +185,7 @@ func processTrack(t *tidalapi.Track) (string, error) {
 		return "", err
 	}
 
-	if t.AudioQuality == "HI_RES" {
+	if t.AudioQuality == tidalapi.Quality[tidalapi.MASTER] {
 		fmt.Printf("MQA Decoding\t")
 		fname, _ = MQADecode(fname)
 		defer os.Remove(fname)
