@@ -91,7 +91,9 @@ func main() {
 	}
 	playerChannel := make(chan string, 1)
 	playerStatusChannel := make(chan int, 1)
+
 	go player(playerChannel, playerStatusChannel)
+	go processKeyboard()
 
 	for _, t := range tracks {
 		a := new(tidalapi.Album)
