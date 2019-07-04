@@ -119,8 +119,6 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 		log.Fatal(err)
 	}
 
-	fmt.Scanln()
-
 	return nil
 }
 
