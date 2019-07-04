@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gen2brain/malgo"
 	"github.com/gookit/color"
@@ -117,6 +118,10 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 	err = device.Start()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	for device.IsStarted() {
+		time.Sleep(time.Second)
 	}
 
 	return nil
