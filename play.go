@@ -15,6 +15,11 @@ import (
 	wav "github.com/youpy/go-wav"
 )
 
+var (
+	device       = new(malgo.Device)
+	deviceConfig = malgo.DefaultDeviceConfig()
+)
+
 func bitsPerSampleToDeviceFormat(bitsPerSample int) malgo.FormatType {
 	switch bitsPerSample {
 	case 24:
@@ -79,8 +84,9 @@ func chooseCard() error {
 
 func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) error {
 
+	var err error
+
 	channels := uint32(NChannels)
-	deviceConfig := malgo.DefaultDeviceConfig()
 	deviceConfig.Alsa.NoMMap = 1
 	deviceConfig.ShareMode = malgo.Exclusive
 	deviceConfig.PerformanceProfile = malgo.Conservative
@@ -102,7 +108,7 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 		Send: onSendSamples,
 	}
 
-	device, err := malgo.InitDevice(ctx.Context, malgo.Playback, &d.ID, deviceConfig, deviceCallbacks)
+	device, err = malgo.InitDevice(ctx.Context, malgo.Playback, &d.ID, deviceConfig, deviceCallbacks)
 	if err != nil {
 		log.Fatal(err)
 	}
