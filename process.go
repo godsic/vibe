@@ -52,7 +52,7 @@ var (
 
 func soxResample(fname string) (string, error) {
 	outname := fname + ".sox"
-	args := fmt.Sprintf(soxArgs, fname, outname, OVERLOAD_PROTECTION, TARGET_SAMPLE_RATE, PCM_HEADROOM)
+	args := fmt.Sprintf(soxArgs, fname, outname, OVERLOAD_PROTECTION, source.SampleRate, PCM_HEADROOM)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
