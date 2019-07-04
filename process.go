@@ -38,12 +38,12 @@ const (
 	tracksPathSuffix    = "/.tracks/"
 	OVERLOAD_PROTECTION = -8.0
 	PCM_HEADROOM        = -4.0
-	TARGET_SAMPLE_RATE  = 48
+	TARGET_SAMPLE_RATE  = uint(48000)
 	TARGET_SPL          = 75.0
 )
 
 var (
-	soxArgs    = "%s -t wav -b 32 %s gain -n %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %dk gain -n %+.2g"
+	soxArgs    = "%s -t wav -b 32 %s gain -n %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %u gain -n %+.2g"
 	ffmpegArgs = "-y -hide_banner -i %s -af loudnorm=I=-24:LRA=14:TP=-4:print_format=json -f null /dev/null"
 	volArgs    = "%s -t wav -e signed-integer -b %d %s gain %+.2g dither"
 	homeDir, _ = os.UserHomeDir()

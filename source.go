@@ -6,13 +6,13 @@ type Source struct {
 	Name          string
 	Vout          float64 // V
 	Rl            float64 // Ohm
-	SampleRate    float64 // kHz
+	SampleRate    uint    // Hz
 	SampleBits    int
 	SampleFormat  malgo.FormatType
 	VolumeControl string
 }
 
-func NewSource(name string, Vout, Rl, SampleRate float64, SampleBits int, VolumeControl string) *Source {
+func NewSource(name string, Vout, Rl float64, SampleRate uint, SampleBits int, VolumeControl string) *Source {
 	var src Source
 	src.Name = name
 	src.Vout = Vout
