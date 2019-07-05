@@ -16,6 +16,7 @@ var (
 		NewSink("AKG K702", 67.0, 100.0),
 		NewSink("Sennheiser HD4.30", 23.0, 116.0),
 		NewSink("Sennheiser PX90", 35.3, 104.5),
+		NewSink("95 db SPL at full scale", 100e3, 95),
 	}
 
 	sinkNum int
