@@ -206,7 +206,8 @@ func processTrack(t *tidalapi.Track) (string, error) {
 	}
 
 	gain := getGain(source, sink, loud)
-	fmt.Printf("Gain: %.1f db", gain)
+
+	fmt.Printf("🎚 %.1f db\tØ %s db\t⟝ %s db ⟞\t⛰ %s db\n", gain, loud.Iin, loud.LRAin, loud.TPin)
 
 	outname, err := applyGain(fname, gain, source)
 	if err != nil {
