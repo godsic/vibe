@@ -106,7 +106,7 @@ func main() {
 			continue
 		}
 
-		fmt.Printf("%s : %s (%s) - %s\t%s\t", t.Artist.Name, a.Title, year(a.ReleaseDate), t.Title, qualityMap[t.AudioQuality])
+		fmt.Printf("%s\t%s\t:\t%s\t>\t%s\t%s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
 
 		fileName, err := processTrack(t)
 		if err != nil {
