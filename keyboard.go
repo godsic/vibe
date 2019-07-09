@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/eiannone/keyboard"
 )
 
@@ -12,6 +14,9 @@ func processKeyboard() {
 		}
 		if key == keyboard.KeySpace {
 			device.Stop()
+		}
+		if key == keyboard.KeyEsc {
+			os.Exit(0)
 		}
 	}
 }

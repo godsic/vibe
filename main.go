@@ -9,12 +9,14 @@ import (
 )
 
 var (
-	session  *tidalapi.Session
-	track    = flag.Int("track", -1, "provide Tidal track ID.")
-	album    = flag.Int("album", -1, "provide Tidal album ID.")
-	playlist = flag.String("playlist", "", "provide Tidal playlist ID.")
-	mqadec   = flag.Bool("mqadec", true, "toggle MQA decoding")
-	mqarend  = flag.Bool("mqarend", false, "toggle MQA rendering")
+	session             *tidalapi.Session
+	track               = flag.Int("track", -1, "provide Tidal track ID.")
+	album               = flag.Int("album", -1, "provide Tidal album ID.")
+	playlist            = flag.String("playlist", "", "provide Tidal playlist ID.")
+	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
+	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
+	playerChannel       = make(chan string, 1)
+	playerStatusChannel = make(chan int, 1)
 )
 
 func main() {
@@ -91,8 +93,6 @@ func main() {
 		}
 		break
 	}
-	playerChannel := make(chan string, 1)
-	playerStatusChannel := make(chan int, 1)
 
 	go player(playerChannel, playerStatusChannel)
 	go processKeyboard()
