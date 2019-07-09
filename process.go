@@ -44,7 +44,7 @@ const (
 
 var (
 	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %d dither"
-	ffmpegArgs = "-y -hide_banner -i %s -af loudnorm=I=-24:LRA=14:TP=-4:print_format=json -f null /dev/null"
+	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -af loudnorm=I=-24:LRA=14:TP=-4:print_format=json -f null /dev/null"
 	volArgs    = "%s -t wav -e signed-integer -b %d %s gain %+.2g dither"
 	homeDir, _ = os.UserHomeDir()
 	tracksPath = homeDir + tracksPathSuffix
