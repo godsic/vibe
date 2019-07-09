@@ -141,9 +141,16 @@ func CanMQARender() bool {
 }
 
 func MQADecode(fname string) (string, error) {
+	if *mqadec == false {
+		return fname, nil
+	}
+
 	if !CanMQADecode() {
 		return fname, errors.New("MQA Decoder is not avaliable")
 	}
+
+	// fmt.Printf("MQA Decoding\t")
+
 	outname := fname + ".mqadecoded"
 
 	cmd := exec.Command("mqadec", fname, outname)
@@ -155,9 +162,16 @@ func MQADecode(fname string) (string, error) {
 }
 
 func MQARender(fname string) (string, error) {
+	if *mqarend == false {
+		return fname, nil
+	}
+
 	if !CanMQARender() {
 		return fname, errors.New("MQA Renderer is not avaliable")
 	}
+
+	// fmt.Printf("MQA Rendering\t")
+
 	outname := fname + ".mqarendered"
 
 	cmd := exec.Command("mqarender", fname, outname)
@@ -186,10 +200,8 @@ func processTrack(t *tidalapi.Track) (string, error) {
 	}
 
 	if t.AudioQuality == tidalapi.Quality[tidalapi.MASTER] {
-		fmt.Printf("MQA Decoding\t")
 		fname, _ = MQADecode(fname)
 		defer os.Remove(fname)
-		fmt.Printf("MQA Rendering\t")
 		fname, _ = MQARender(fname)
 		defer os.Remove(fname)
 	}

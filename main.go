@@ -13,6 +13,8 @@ var (
 	track    = flag.Int("track", -1, "provide Tidal track ID.")
 	album    = flag.Int("album", -1, "provide Tidal album ID.")
 	playlist = flag.String("playlist", "", "provide Tidal playlist ID.")
+	mqadec   = flag.Bool("mqadec", true, "toggle MQA decoding")
+	mqarend  = flag.Bool("mqarend", false, "toggle MQA rendering")
 )
 
 func main() {
