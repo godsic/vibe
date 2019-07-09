@@ -71,7 +71,7 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 	var loudnessInfo LoudnessInfo
 	outStr := string(out)
 	outStrs := strings.Split(outStr, "\n")
-	outStr = strings.Join(outStrs[15:], "\n")
+	outStr = strings.Join(outStrs[len(outStrs)-13:], "\n")
 	err = json.Unmarshal([]byte(outStr), &loudnessInfo)
 	if err != nil {
 		log.Println(err)
