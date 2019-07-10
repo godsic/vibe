@@ -17,7 +17,7 @@ func credentials() (string, string, error) {
 	username, _ := reader.ReadString('\n')
 
 	fmt.Print(color.Bold.Render("Enter Tidal Password: "))
-	bytePassword, err := terminal.ReadPassword(0)
+	bytePassword, err := terminal.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		return "", "", err
 	}
