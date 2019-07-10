@@ -90,9 +90,9 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 	channels := uint32(NChannels)
 	deviceConfig.Alsa.NoMMap = 1
 	deviceConfig.ShareMode = malgo.Exclusive
-	deviceConfig.PerformanceProfile = malgo.Conservative
+	deviceConfig.PerformanceProfile = malgo.LowLatency
 
-	deviceConfig.BufferSizeInMilliseconds = 1000
+	deviceConfig.BufferSizeInMilliseconds = 300 * 1000
 	deviceConfig.Channels = channels
 	deviceConfig.SampleRate = uint32(SampleRate)
 	deviceConfig.Format = bitsPerSampleToDeviceFormat(BitsPerSample)
