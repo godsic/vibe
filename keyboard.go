@@ -13,7 +13,7 @@ func processKeyboard() {
 			panic(err)
 		}
 		if key == keyboard.KeySpace {
-			device.Stop()
+			playerCtl <- 0
 		}
 		if key == keyboard.KeyEsc {
 			os.Exit(0)

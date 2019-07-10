@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gen2brain/malgo"
 	"github.com/gookit/color"
@@ -19,6 +19,7 @@ import (
 var (
 	device       = new(malgo.Device)
 	deviceConfig = malgo.DefaultDeviceConfig()
+	playerCtl    = make(chan int)
 )
 
 func bitsPerSampleToDeviceFormat(bitsPerSample int) malgo.FormatType {
@@ -100,7 +101,10 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 	sampleSize := uint32(malgo.SampleSizeInBytes(deviceConfig.Format))
 	// This is the function that's used for sending more data to the device for playback.
 	onSendSamples := func(frameCount uint32, samples []byte) uint32 {
-		n, _ := buffer.Read(samples)
+		n, err := buffer.Read(samples)
+		if err == io.EOF {
+			playerCtl <- 0
+		}
 		frameGot := uint32(n) / channels / sampleSize
 		return frameGot
 	}
@@ -120,9 +124,7 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 		log.Fatal(err)
 	}
 
-	for device.IsStarted() {
-		time.Sleep(time.Second)
-	}
+	<-playerCtl
 
 	return nil
 }
