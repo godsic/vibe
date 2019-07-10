@@ -49,7 +49,7 @@ func closeCard() {
 	ctx.Free()
 }
 func chooseCard() error {
-	backends := []malgo.Backend{malgo.BackendAlsa}
+	backends := []malgo.Backend{malgo.BackendAlsa, malgo.BackendWasapi}
 
 	var err error
 
