@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"time"
 
 	"github.com/eiannone/keyboard"
@@ -23,7 +22,7 @@ func processKeyboard() {
 			playerCtl <- 0
 		}
 		if key == keyboard.KeyEsc {
-			os.Exit(0)
+			close(playerStatusChannel)
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
