@@ -98,25 +98,26 @@ func main() {
 	go processKeyboard()
 
 	for _, t := range tracks {
-		a := new(tidalapi.Album)
-		err = session.Get(tidalapi.ALBUM, t.Album.Id, a)
-		if err != nil {
-			log.Fatal(err)
+		if t.AllowStreaming {
+			a := new(tidalapi.Album)
+			err = session.Get(tidalapi.ALBUM, t.Album.Id, a)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
+				continue
+			}
+
+			fmt.Printf("%s\t🎤👩 %-20.20v\t💿 %-20.20v\t🎼 %-20.20v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
+
+			fileName, err := processTrack(t)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			playerChannel <- fileName
 		}
-
-		if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
-			continue
-		}
-
-		fmt.Printf("%s\t🎤👩 %-20.20v\t💿 %-20.20v\t🎼 %-20.20v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
-
-		fileName, err := processTrack(t)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		playerChannel <- fileName
-
 	}
 
 	close(playerChannel)
