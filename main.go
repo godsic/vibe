@@ -17,6 +17,7 @@ var (
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
+	tracks              = make([]*tidalapi.Track, 0, 10)
 )
 
 func main() {
@@ -50,8 +51,6 @@ func main() {
 	}
 
 	fmt.Printf("Target Perceived Loudness is %.1f db\n", TARGET_SPL)
-
-	tracks := make([]*tidalapi.Track, 0, 10)
 
 	switch {
 	case *track > 0:
