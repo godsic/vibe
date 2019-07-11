@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
@@ -62,22 +63,41 @@ func soxResample(fname string, gain float64, src *Source) (string, error) {
 }
 
 func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
-	args := fmt.Sprintf(ffmpegArgs, fname)
-	cmd := exec.Command("ffmpeg", strings.Split(args, " ")...)
-	out, err := cmd.CombinedOutput()
+	loudnessInfo := new(LoudnessInfo)
+	var outBytes []byte
+
+	fnameLoud := fname + ".json"
+	outBytes, err := ioutil.ReadFile(fnameLoud)
 	if err != nil {
-		return nil, err
+		args := fmt.Sprintf(ffmpegArgs, fname)
+		cmd := exec.Command("ffmpeg", strings.Split(args, " ")...)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return nil, err
+		}
+
+		outStr := string(out)
+		outStrs := strings.Split(outStr, "\n")
+		outStr = strings.Join(outStrs[len(outStrs)-13:], "\n")
+		outBytes = []byte(outStr)
 	}
-	var loudnessInfo LoudnessInfo
-	outStr := string(out)
-	outStrs := strings.Split(outStr, "\n")
-	outStr = strings.Join(outStrs[len(outStrs)-13:], "\n")
-	err = json.Unmarshal([]byte(outStr), &loudnessInfo)
+
+	err = json.Unmarshal(outBytes, loudnessInfo)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return &loudnessInfo, nil
+
+	outBytes, err = json.Marshal(loudnessInfo)
+	if err != nil {
+		log.Println(err)
+	}
+	err = ioutil.WriteFile(fnameLoud, outBytes, 0640)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return loudnessInfo, nil
 }
 
 func applyGain(fname string, gain float64, src *Source) (string, error) {
