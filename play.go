@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -9,10 +8,9 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/gen2brain/malgo"
-	"github.com/gookit/color"
+	"github.com/rivo/tview"
 	wav "github.com/youpy/go-wav"
 )
 
@@ -62,25 +60,17 @@ func chooseCard() error {
 
 	devices, _ := ctx.Devices(malgo.Playback)
 
-	for n, d := range devices {
-		fmt.Println(n+1, ": ", d.Name())
-
+	list := tview.NewList()
+	for n, dd := range devices {
+		// fmt.Println(n+1, ": ", s.Name)
+		list.AddItem(dd.Name(), "", rune(strconv.Itoa(n)[0]), func() { app.Stop() })
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(color.Bold.Render("Enter Card number: "))
-	card, err := reader.ReadString('\n')
-	if err != nil {
-		return err
+	if err := app.SetRoot(list, true).Run(); err != nil {
+		panic(err)
 	}
 
-	cardNum, err = strconv.Atoi(strings.TrimSpace(card))
-	if err != nil {
-		return err
-	}
-
-	d = devices[cardNum-1]
-
+	d = devices[list.GetCurrentItem()]
 	return nil
 }
 

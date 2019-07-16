@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
 	"strconv"
-	"strings"
 
-	"github.com/gookit/color"
+	"github.com/rivo/tview"
 )
 
 var (
@@ -22,23 +18,15 @@ var (
 )
 
 func chooseSource() error {
+	list := tview.NewList()
 	for n, s := range Sources {
-		fmt.Println(n+1, ": ", s.Name)
-
+		list.AddItem(s.Name, "", rune(strconv.Itoa(n)[0]), func() { app.Stop() })
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(color.Bold.Render("Enter Source number: "))
-	card, err := reader.ReadString('\n')
-	if err != nil {
-		return err
+	if err := app.SetRoot(list, true).Run(); err != nil {
+		panic(err)
 	}
 
-	sourceNum, err = strconv.Atoi(strings.TrimSpace(card))
-	if err != nil {
-		return err
-	}
-
-	source = Sources[sourceNum-1]
+	source = Sources[list.GetCurrentItem()]
 	return nil
 }

@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
 	"strconv"
-	"strings"
 
-	"github.com/gookit/color"
+	"github.com/rivo/tview"
 )
 
 var (
@@ -24,23 +20,15 @@ var (
 )
 
 func chooseSink() error {
+	list := tview.NewList()
 	for n, s := range Sinks {
-		fmt.Println(n+1, ": ", s.Name)
-
+		list.AddItem(s.Name, "", rune(strconv.Itoa(n)[0]), func() { app.Stop() })
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print(color.Bold.Render("Enter Sink number: "))
-	choice, err := reader.ReadString('\n')
-	if err != nil {
-		return err
+	if err := app.SetRoot(list, true).Run(); err != nil {
+		panic(err)
 	}
 
-	sinkNum, err = strconv.Atoi(strings.TrimSpace(choice))
-	if err != nil {
-		return err
-	}
-
-	sink = Sinks[sinkNum-1]
+	sink = Sinks[list.GetCurrentItem()]
 	return nil
 }

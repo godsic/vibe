@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/godsic/tidalapi"
+	"github.com/rivo/tview"
 )
 
 var (
@@ -18,6 +19,7 @@ var (
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
 	tracks              = make([]*tidalapi.Track, 0, 10)
+	app                 = tview.NewApplication()
 )
 
 func main() {
@@ -50,6 +52,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("%s -> %s -> %s \n", d.Name(), source.Name, sink.Name)
 	fmt.Printf("Target Perceived Loudness is %.1f db\n", TARGET_SPL)
 
 	switch {
