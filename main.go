@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/godsic/tidalapi"
 	"github.com/rivo/tview"
@@ -16,24 +17,44 @@ var (
 	playlist            = flag.String("playlist", "", "provide Tidal playlist ID.")
 	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
+	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
 	tracks              = make([]*tidalapi.Track, 0, 10)
 	app                 = tview.NewApplication()
+	tracklist           = tview.NewList()
 )
+
+func getracklist() {
+	for _, t := range tracks {
+		if t.AllowStreaming {
+			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
+				continue
+			}
+			a := new(tidalapi.Album)
+			err := session.Get(tidalapi.ALBUM, t.Album.Id, a)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			label := fmt.Sprintf("%s\t🎤👩 %-20.20v\t💿 %-20.20v\t🎼 %-20.20v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
+			tracklist.AddItem(label, "", ' ', func() { processingChannel <- tracks[tracklist.GetCurrentItem()] })
+			app.Draw()
+			time.Sleep(time.Second)
+		}
+	}
+}
 
 func main() {
 	flag.Parse()
 
 	session = tidalapi.NewSession(tidalapi.LOSSLESS)
-	login, password, err := credentials()
+
+	err := credentials()
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = session.Login(login, password)
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	fmt.Println("Logged in.")
 
 	err = chooseCard()
@@ -96,9 +117,17 @@ func main() {
 		break
 	}
 
+	tracklist.SetTitle("Tracks")
+
 	go player(playerChannel, playerStatusChannel)
-	go processKeyboard()
+	// go processKeyboard()
+	go getracklist()
+
 	go processTracks()
+
+	if err := app.SetRoot(tracklist, true).Run(); err != nil {
+		panic(err)
+	}
 
 	<-playerStatusChannel
 
