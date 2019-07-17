@@ -1,27 +1,30 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
-
-	"github.com/gookit/color"
-	"golang.org/x/crypto/ssh/terminal"
+	"github.com/rivo/tview"
 )
 
-func credentials() (string, string, error) {
-	reader := bufio.NewReader(os.Stdin)
+func credentials() error {
 
-	fmt.Print(color.Bold.Render("Enter Tidal Username: "))
-	username, _ := reader.ReadString('\n')
+	form := tview.NewForm()
+	form.AddInputField("Username", "", 0, nil, nil)
+	form.AddPasswordField("Password", "", 0, '*', nil)
+	form.AddButton("Login", func() {
+		username := form.GetFormItem(0).(*tview.InputField).GetText()
+		password := form.GetFormItem(1).(*tview.InputField).GetText()
 
-	fmt.Print(color.Bold.Render("Enter Tidal Password: "))
-	bytePassword, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		return "", "", err
+		err := session.Login(username, password)
+		if err != nil {
+		} else {
+			app.Stop()
+		}
+	})
+
+	form.SetBorder(true).SetTitle("Tidal credentials").SetTitleAlign(tview.AlignCenter)
+
+	if err := app.SetRoot(form, true).Run(); err != nil {
+		panic(err)
 	}
-	password := string(bytePassword)
 
-	return strings.TrimSpace(username), strings.TrimSpace(password), nil
+	return nil
 }
