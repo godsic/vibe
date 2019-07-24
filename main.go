@@ -60,7 +60,7 @@ func getracklist() {
 				continue
 			}
 			label := fmt.Sprintf("%s\t🎤👩 %-20.20v\t💿 %-20.20v\t🎼 %-20.20v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
-			tracklist.AddItem(label, "", ' ', func() {
+			tracklist.AddItem(label, "", 0, func() {
 				fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
 				if err != nil {
 					log.Println(err)
@@ -163,4 +163,5 @@ func main() {
 	if err := app.SetRoot(tracklist, true).Run(); err != nil {
 		panic(err)
 	}
+
 }
