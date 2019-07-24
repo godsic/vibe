@@ -17,6 +17,7 @@ var (
 	playlist            = flag.String("playlist", "", "provide Tidal playlist ID.")
 	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
+	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
 	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
@@ -107,7 +108,7 @@ func main() {
 	}
 
 	fmt.Printf("%s -> %s -> %s \n", d.Name(), source.Name, sink.Name)
-	fmt.Printf("Target Perceived Loudness is %.1f db\n", TARGET_SPL)
+	fmt.Printf("Target Perceived Loudness is %.1f db\n", *targetSpl)
 	err = initSource()
 	if err != nil {
 		log.Fatal(err)

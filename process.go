@@ -40,7 +40,6 @@ const (
 	OVERLOAD_PROTECTION = -8.0
 	PCM_HEADROOM        = -4.0
 	TARGET_SAMPLE_RATE  = uint(48000)
-	TARGET_SPL          = 75.0
 )
 
 var (
@@ -206,7 +205,7 @@ func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) float64 {
 	rtot := src.Rl + sink.R
 	vl := src.Vout * (sink.R / rtot)
 	splMax := sink.Sensitivity + 20.*math.Log10(vl)
-	targetSplRel := TARGET_SPL - splMax
+	targetSplRel := *targetSpl - splMax
 	Iin, _ := strconv.ParseFloat(loudness.Iin, 64)
 	gain := math.Round(targetSplRel - Iin)
 	return gain
