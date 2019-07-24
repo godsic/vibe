@@ -25,6 +25,29 @@ var (
 	tracklist           = tview.NewList()
 )
 
+func loopovertracks() {
+	for n, t := range tracks {
+		if t.AllowStreaming {
+			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
+				continue
+			}
+			tracklist.SetCurrentItem(n)
+			app.Draw()
+			fileName, err := processTrack(t)
+			if err != nil {
+				log.Println(err)
+			}
+			err = loadFileIntoBuffer(fileName)
+			if err != nil {
+				log.Println(err)
+			}
+			for buffer.Len() != 0 {
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+	}
+}
+
 func getracklist() {
 	for _, t := range tracks {
 		if t.AllowStreaming {
@@ -34,11 +57,19 @@ func getracklist() {
 			a := new(tidalapi.Album)
 			err := session.Get(tidalapi.ALBUM, t.Album.Id, a)
 			if err != nil {
-				log.Println(err)
 				continue
 			}
 			label := fmt.Sprintf("%s\t🎤👩 %-20.20v\t💿 %-20.20v\t🎼 %-20.20v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
-			tracklist.AddItem(label, "", ' ', func() { processingChannel <- tracks[tracklist.GetCurrentItem()] })
+			tracklist.AddItem(label, "", ' ', func() {
+				fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
+				if err != nil {
+					log.Println(err)
+				}
+				err = loadFileIntoBuffer(fileName)
+				if err != nil {
+					log.Println(err)
+				}
+			})
 			app.Draw()
 			time.Sleep(time.Second)
 		}
@@ -46,6 +77,8 @@ func getracklist() {
 }
 
 func main() {
+	defer device.Uninit()
+
 	flag.Parse()
 
 	session = tidalapi.NewSession(tidalapi.LOSSLESS)
@@ -75,6 +108,10 @@ func main() {
 
 	fmt.Printf("%s -> %s -> %s \n", d.Name(), source.Name, sink.Name)
 	fmt.Printf("Target Perceived Loudness is %.1f db\n", TARGET_SPL)
+	err = initSource()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	switch {
 	case *track > 0:
@@ -119,16 +156,11 @@ func main() {
 
 	tracklist.SetTitle("Tracks")
 
-	go player(playerChannel, playerStatusChannel)
-	// go processKeyboard()
 	go getracklist()
-
-	go processTracks()
+	go loopovertracks()
+	play()
 
 	if err := app.SetRoot(tracklist, true).Run(); err != nil {
 		panic(err)
 	}
-
-	<-playerStatusChannel
-
 }

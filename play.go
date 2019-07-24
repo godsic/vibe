@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/gen2brain/malgo"
 	"github.com/rivo/tview"
@@ -18,6 +18,8 @@ var (
 	device       = new(malgo.Device)
 	deviceConfig = malgo.DefaultDeviceConfig()
 	playerCtl    = make(chan int)
+	buffer       bytes.Buffer
+	bufferMutex  sync.Mutex
 )
 
 func bitsPerSampleToDeviceFormat(bitsPerSample int) malgo.FormatType {
@@ -46,6 +48,7 @@ func closeCard() {
 	}
 	ctx.Free()
 }
+
 func chooseCard() error {
 	backends := []malgo.Backend{malgo.BackendAlsa, malgo.BackendWasapi}
 
@@ -74,26 +77,24 @@ func chooseCard() error {
 	return nil
 }
 
-func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) error {
+func initSource() (err error) {
 
-	var err error
-
-	channels := uint32(NChannels)
+	channels := uint32(2)
 	deviceConfig.Alsa.NoMMap = 1
 	deviceConfig.ShareMode = malgo.Exclusive
 	deviceConfig.PerformanceProfile = malgo.LowLatency
 
 	deviceConfig.BufferSizeInMilliseconds = 300 * 1000
 	deviceConfig.Channels = channels
-	deviceConfig.SampleRate = uint32(SampleRate)
-	deviceConfig.Format = bitsPerSampleToDeviceFormat(BitsPerSample)
+	deviceConfig.SampleRate = uint32(source.SampleRate)
+	deviceConfig.Format = source.SampleFormat
 
 	sampleSize := uint32(malgo.SampleSizeInBytes(deviceConfig.Format))
 	// This is the function that's used for sending more data to the device for playback.
 	onSendSamples := func(frameCount uint32, samples []byte) uint32 {
 		n, err := buffer.Read(samples)
 		if err == io.EOF {
-			playerCtl <- 0
+			return 0
 		}
 		frameGot := uint32(n) / channels / sampleSize
 		return frameGot
@@ -105,21 +106,32 @@ func playBuffer(buffer *bytes.Buffer, NChannels, BitsPerSample, SampleRate int) 
 
 	device, err = malgo.InitDevice(ctx.Context, malgo.Playback, &d.ID, deviceConfig, deviceCallbacks)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
-	defer device.Uninit()
-
-	err = device.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	<-playerCtl
-
 	return nil
 }
 
-func playFile(fname string) (err error) {
+func play() error {
+
+	err := device.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func pause() error {
+	if device.IsStarted() {
+		err := device.Stop()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return nil
+}
+
+func loadFileIntoBuffer(fname string) error {
 	f, err := os.Open(fname)
 	if err != nil {
 		return err
@@ -127,27 +139,12 @@ func playFile(fname string) (err error) {
 	defer f.Close()
 
 	r := wav.NewReader(f)
-	data, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-	format, err := r.Format()
-	if err != nil {
-		return err
-	}
-	buffer := bytes.NewBuffer(data)
-	// fmt.Println(int(format.NumChannels), int(format.BitsPerSample), int(format.SampleRate))
-	playBuffer(buffer, int(format.NumChannels), int(format.BitsPerSample), int(format.SampleRate))
-	return nil
-}
 
-func player(in chan string, status chan int) {
-	for t := range in {
-		err := playFile(t)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer os.Remove(t)
-	}
-	close(status)
+	newbuffer := new(bytes.Buffer)
+	newbuffer.ReadFrom(r)
+	// buffer.Reset()
+	bufferMutex.Lock()
+	buffer = *newbuffer
+	bufferMutex.Unlock()
+	return nil
 }
