@@ -59,7 +59,7 @@ func getracklist() {
 			if err != nil {
 				continue
 			}
-			label := fmt.Sprintf("%s\t🎤👩 %-20.20v\t💿 %-20.20v\t🎼 %-20.20v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
+			label := fmt.Sprintf("%s \t🎤👩 %-40.40v\t💿 %-40.40v\t🎼 %-40.40v\t📅 %s\t", qualityMap[t.AudioQuality], t.Artist.Name, a.Title, t.Title, year(a.ReleaseDate))
 			tracklist.AddItem(label, "", 0, func() {
 				fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
 				if err != nil {
