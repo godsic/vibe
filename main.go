@@ -98,8 +98,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Logged in.")
-
 	err = chooseCard()
 	if err != nil {
 		log.Fatal(err)
@@ -116,8 +114,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%s -> %s -> %s \n", d.Name(), source.Name, sink.Name)
-	fmt.Printf("Target Perceived Loudness is %.1f db\n", *targetSpl)
 	err = initSource()
 	if err != nil {
 		log.Fatal(err)
