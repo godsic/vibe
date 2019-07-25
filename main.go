@@ -21,10 +21,18 @@ var (
 	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
+	TUIChannel          = make(chan int, 1)
 	tracks              = make([]*tidalapi.Track, 0, 10)
 	app                 = tview.NewApplication()
 	tracklist           = tview.NewList()
 )
+
+func TUI() {
+	if err := app.Run(); err != nil {
+		panic(err)
+	}
+	TUIChannel <- 0
+}
 
 func loopovertracks() {
 	for n, t := range tracks {
@@ -82,6 +90,8 @@ func main() {
 	flag.Parse()
 
 	session = tidalapi.NewSession(tidalapi.LOSSLESS)
+
+	go TUI()
 
 	err := credentials()
 	if err != nil {
@@ -160,8 +170,7 @@ func main() {
 	go loopovertracks()
 	play()
 
-	if err := app.SetRoot(tracklist, true).Run(); err != nil {
-		panic(err)
-	}
+	app.SetRoot(tracklist, true)
 
+	<-TUIChannel
 }

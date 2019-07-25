@@ -5,7 +5,7 @@ import (
 )
 
 func credentials() error {
-
+	done := make(chan int)
 	form := tview.NewForm()
 	form.AddInputField("Username", "", 0, nil, nil)
 	form.AddPasswordField("Password", "", 0, '*', nil)
@@ -16,15 +16,13 @@ func credentials() error {
 		err := session.Login(username, password)
 		if err != nil {
 		} else {
-			app.Stop()
+			done <- 0
 		}
 	})
 
 	form.SetBorder(true).SetTitle("Tidal credentials").SetTitleAlign(tview.AlignCenter)
+	app.SetRoot(form, true).Draw()
 
-	if err := app.SetRoot(form, true).Run(); err != nil {
-		panic(err)
-	}
-
+	<-done
 	return nil
 }

@@ -18,15 +18,15 @@ var (
 )
 
 func chooseSource() error {
+	done := make(chan int)
+
 	list := tview.NewList()
 	for n, s := range Sources {
-		list.AddItem(s.Name, "", rune(strconv.Itoa(n)[0]), func() { app.Stop() })
+		list.AddItem(s.Name, "", rune(strconv.Itoa(n)[0]), func() { done <- 0 })
 	}
+	app.SetRoot(list, true).Draw()
 
-	if err := app.SetRoot(list, true).Run(); err != nil {
-		panic(err)
-	}
-
+	<-done
 	source = Sources[list.GetCurrentItem()]
 	return nil
 }

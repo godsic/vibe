@@ -63,16 +63,16 @@ func chooseCard() error {
 
 	devices, _ := ctx.Devices(malgo.Playback)
 
+	done := make(chan int)
+
 	list := tview.NewList()
 	for n, dd := range devices {
 		// fmt.Println(n+1, ": ", s.Name)
-		list.AddItem(dd.Name(), "", rune(strconv.Itoa(n)[0]), func() { app.Stop() })
+		list.AddItem(dd.Name(), "", rune(strconv.Itoa(n)[0]), func() { done <- 0 })
 	}
+	app.SetRoot(list, true).Draw()
 
-	if err := app.SetRoot(list, true).Run(); err != nil {
-		panic(err)
-	}
-
+	<-done
 	d = devices[list.GetCurrentItem()]
 	return nil
 }
