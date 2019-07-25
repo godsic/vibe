@@ -78,7 +78,6 @@ func getracklist() {
 }
 
 func main() {
-	defer device.Uninit()
 
 	flag.Parse()
 
