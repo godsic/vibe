@@ -53,9 +53,15 @@ var (
 
 func soxResample(fname string, gain float64, src *Source) (string, error) {
 	outname := fname + processedTracksSuffix
+
+	_, err := os.Stat(outname)
+	if !os.IsNotExist(err) {
+		return outname, nil
+	}
+
 	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, source.SampleRate)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
-	_, err := cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
 		return "", err
 	}
