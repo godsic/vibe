@@ -1,6 +1,11 @@
 package main
 
-import "github.com/godsic/tidalapi"
+import (
+	"os"
+	"path/filepath"
+
+	"github.com/godsic/tidalapi"
+)
 
 var (
 	qualityMap = map[string]string{
@@ -15,4 +20,21 @@ func year(date string) string {
 		return ""
 	}
 	return date[0:4]
+}
+
+func takeCareOfTracksFolder() (err error) {
+	return os.MkdirAll(tracksPath, 0700)
+}
+
+func cleanupProcessedTracks() (err error) {
+	files, err := filepath.Glob(tracksPath + "*" + processedTracksSuffix)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := os.Remove(f); err != nil {
+			return err
+		}
+	}
+	return nil
 }

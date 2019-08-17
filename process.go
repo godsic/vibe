@@ -36,10 +36,11 @@ const (
 )
 
 const (
-	tracksPathSuffix    = "/.tracks/"
-	OVERLOAD_PROTECTION = -8.0
-	PCM_HEADROOM        = -4.0
-	TARGET_SAMPLE_RATE  = uint(48000)
+	tracksPathSuffix      = "/.tracks/"
+	processedTracksSuffix = ".sox"
+	OVERLOAD_PROTECTION   = -8.0
+	PCM_HEADROOM          = -4.0
+	TARGET_SAMPLE_RATE    = uint(48000)
 )
 
 var (
@@ -51,7 +52,7 @@ var (
 )
 
 func soxResample(fname string, gain float64, src *Source) (string, error) {
-	outname := fname + ".sox"
+	outname := fname + processedTracksSuffix
 	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, source.SampleRate)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err := cmd.CombinedOutput()

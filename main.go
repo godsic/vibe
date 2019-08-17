@@ -89,11 +89,21 @@ func main() {
 
 	flag.Parse()
 
+	err := takeCareOfTracksFolder()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = cleanupProcessedTracks()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	session = tidalapi.NewSession(tidalapi.LOSSLESS)
 
 	go TUI()
 
-	err := credentials()
+	err = credentials()
 	if err != nil {
 		log.Fatal(err)
 	}
