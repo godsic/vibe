@@ -68,7 +68,7 @@ func getracklist() {
 			if err != nil {
 				continue
 			}
-			info := fmt.Sprintf("by %v in %v (%v)", t.Artist.Name, a.Title, year(a.ReleaseDate))
+			info := fmt.Sprintf("  [darkslategray]by [saddlebrown]%v [darkslategray]in [dimgray]%v [darkolivegreen](%v)", t.Artist.Name, a.Title, year(a.ReleaseDate))
 			tracklist.AddItem(t.Title, info, 0, func() {
 				fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
 				if err != nil {
