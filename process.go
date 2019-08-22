@@ -18,16 +18,10 @@ import (
 )
 
 type LoudnessInfo struct {
-	Iin          string `json:"input_i"`
-	TPin         string `json:"input_tp"`
-	LRAin        string `json:"input_lra"`
-	TRin         string `json:"input_thresh"`
-	Iout         string `json:"output_i"`
-	TPout        string `json:"output_tp"`
-	LRAout       string `json:"output_lra"`
-	TRout        string `json:"output_thresh"`
-	NormType     string `json:"normalization_type"`
-	TargetOffset string `json:"target_offset"`
+	I   float64 `json:"i"`
+	TP  float64 `json:"tp"`
+	LRA float64 `json:"lra"`
+	TR  float64 `json:"thresh"`
 }
 
 const (
@@ -45,11 +39,22 @@ const (
 
 var (
 	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %d dither"
-	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -af loudnorm=I=-24:LRA=14:TP=-4:print_format=json -f null /dev/null"
+	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	volArgs    = "%s -t wav -e signed-integer -b %d %s gain %+.2g dither"
 	homeDir, _ = os.UserHomeDir()
 	tracksPath = homeDir + tracksPathSuffix
 )
+
+var ffmpegOutputFmt = "  Integrated loudness:\n" +
+	"    I:         %f LUFS\n" +
+	"    Threshold: %f LUFS\n\n" +
+	"  Loudness range:\n" +
+	"    LRA:       %f LU\n" +
+	"    Threshold: %f LUFS\n" +
+	"    LRA low:   %f LUFS\n" +
+	"    LRA high:  %f LUFS\n\n" +
+	"  True  peak:\n" +
+	"    Peak:      %f dBFS"
 
 func soxResample(fname string, gain float64, src *Source) (string, error) {
 	outname := fname + processedTracksSuffix
@@ -85,13 +90,26 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 		outStr := string(out)
 		outStrs := strings.Split(outStr, "\n")
 		outStr = strings.Join(outStrs[len(outStrs)-13:], "\n")
-		outBytes = []byte(outStr)
-	}
 
-	err = json.Unmarshal(outBytes, loudnessInfo)
-	if err != nil {
-		log.Println(err)
-		return nil, err
+		dummy := float64(0.0)
+		_, err = fmt.Sscanf(outStr, ffmpegOutputFmt,
+			&(loudnessInfo.I),
+			&(loudnessInfo.TR),
+			&(loudnessInfo.LRA),
+			&dummy,
+			&dummy,
+			&dummy,
+			&(loudnessInfo.TP))
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	} else {
+		err = json.Unmarshal(outBytes, loudnessInfo)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
 	}
 
 	outBytes, err = json.Marshal(loudnessInfo)
@@ -213,8 +231,7 @@ func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) float64 {
 	vl := src.Vout * (sink.R / rtot)
 	splMax := sink.Sensitivity + 20.*math.Log10(vl)
 	targetSplRel := *targetSpl - splMax
-	Iin, _ := strconv.ParseFloat(loudness.Iin, 64)
-	gain := math.Round(targetSplRel - Iin)
+	gain := math.Round(targetSplRel - loudness.I)
 	return gain
 }
 
