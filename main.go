@@ -61,7 +61,6 @@ func getracklist() {
 	tracklist.SetBorder(true)
 	tracklist.SetTitle("Tracklist")
 	tracklist.SetHighlightFullLine(true)
-	tracklist.Set
 	for _, t := range tracks {
 		if t.AllowStreaming {
 			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
