@@ -15,6 +15,7 @@ var (
 	track               = flag.Int("track", -1, "provide Tidal track ID.")
 	album               = flag.Int("album", -1, "provide Tidal album ID.")
 	playlist            = flag.String("playlist", "", "provide Tidal playlist ID.")
+	artist              = flag.Int("artist", -1, "provide Tidal artist ID.")
 	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
 	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
@@ -144,6 +145,16 @@ func main() {
 	case *album > 0:
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.ALBUMTRACKS, *album, obj)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := range obj.Items {
+			tracks = append(tracks, &(obj.Items[i]))
+		}
+		break
+	case *artist > 0:
+		obj := new(tidalapi.Tracks)
+		err = session.Get(tidalapi.ARTISTTOPTRACKS, *artist, obj)
 		if err != nil {
 			log.Fatal(err)
 		}
