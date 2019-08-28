@@ -16,6 +16,7 @@ var (
 	album               = flag.Int("album", -1, "provide Tidal album ID.")
 	playlist            = flag.String("playlist", "", "provide Tidal playlist ID.")
 	artist              = flag.Int("artist", -1, "provide Tidal artist ID.")
+	radio               = flag.Bool("radio", false, "toggle radio (works with --artist and --track")
 	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
 	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
@@ -134,13 +135,23 @@ func main() {
 	}
 
 	switch {
-	case *track > 0:
+	case *track > 0 && *radio == false:
 		obj := new(tidalapi.Track)
 		err = session.Get(tidalapi.TRACK, *track, obj)
 		if err != nil {
 			log.Fatal(err)
 		}
 		tracks = append(tracks, obj)
+		break
+	case *track > 0 && *radio == true:
+		obj := new(tidalapi.Tracks)
+		err = session.Get(tidalapi.TRACKRADIO, *track, obj)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := range obj.Items {
+			tracks = append(tracks, &(obj.Items[i]))
+		}
 		break
 	case *album > 0:
 		obj := new(tidalapi.Tracks)
@@ -152,9 +163,19 @@ func main() {
 			tracks = append(tracks, &(obj.Items[i]))
 		}
 		break
-	case *artist > 0:
+	case *artist > 0 && *radio == false:
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.ARTISTTOPTRACKS, *artist, obj)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i := range obj.Items {
+			tracks = append(tracks, &(obj.Items[i]))
+		}
+		break
+	case *artist > 0 && *radio == true:
+		obj := new(tidalapi.Tracks)
+		err = session.Get(tidalapi.ARTISTRADIO, *artist, obj)
 		if err != nil {
 			log.Fatal(err)
 		}
