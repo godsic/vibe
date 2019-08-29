@@ -68,12 +68,7 @@ func getracklist() {
 			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
 				continue
 			}
-			a := new(tidalapi.Album)
-			err := session.Get(tidalapi.ALBUM, t.Album.Id, a)
-			if err != nil {
-				continue
-			}
-			info := fmt.Sprintf("  [darkslategray]in [dimgray]%v [darkslategray]by [saddlebrown]%v [darkolivegreen](%v)", a.Title, t.Artist.Name, year(a.ReleaseDate))
+			info := fmt.Sprintf("  [darkslategray]in [dimgray]%v [darkslategray]by [saddlebrown]%v [darkolivegreen](%v)", t.Album.Title, t.Artist.Name, t.Copyright)
 			tracklist.AddItem(t.Title, info, 0, func() {
 				fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
 				if err != nil {
@@ -85,7 +80,6 @@ func getracklist() {
 				}
 			})
 			app.Draw()
-			time.Sleep(time.Second)
 		}
 	}
 }
