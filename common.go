@@ -38,3 +38,18 @@ func cleanupProcessedTracks() (err error) {
 	}
 	return nil
 }
+
+func trackList() func() (int, *tidalapi.Track) {
+	i := -1
+	s := len(tracks)
+	return func() (int, *tidalapi.Track) {
+		switch {
+		default:
+			i++
+			if i < s {
+				return i, tracks[i]
+			}
+			return -1, nil
+		}
+	}
+}

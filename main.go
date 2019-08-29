@@ -37,7 +37,8 @@ func TUI() {
 }
 
 func loopovertracks() {
-	for n, t := range tracks {
+	nextTrack := trackList()
+	for n, t := nextTrack(); t != nil; n, t = nextTrack() {
 		if t.AllowStreaming {
 			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
 				continue
