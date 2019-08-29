@@ -20,6 +20,7 @@ var (
 	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
 	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
+	shuffle             = flag.Bool("shuffle", false, "toggle shuffle mode.")
 	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 
@@ -44,6 +45,9 @@ func trackList() func() (int, *tidalapi.Track) {
 	s := len(tracks)
 	return func() (int, *tidalapi.Track) {
 		switch {
+		case *shuffle == true:
+			i = rand.Intn(s)
+			return i, tracks[i]
 		default:
 			i++
 			if i < s {
