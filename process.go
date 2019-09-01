@@ -33,15 +33,11 @@ const (
 const (
 	tracksPathSuffix      = "/.tracks/"
 	processedTracksSuffix = ".sox"
-	OVERLOAD_PROTECTION   = -8.0
-	PCM_HEADROOM          = -4.0
-	TARGET_SAMPLE_RATE    = uint(48000)
 )
 
 var (
 	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %d dither"
 	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
-	volArgs    = "%s -t wav -e signed-integer -b %d %s gain %+.2g dither"
 	homeDir, _ = os.UserHomeDir()
 	tracksPath = homeDir + tracksPathSuffix
 )
@@ -123,17 +119,6 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 	}
 
 	return loudnessInfo, nil
-}
-
-func applyGain(fname string, gain float64, src *Source) (string, error) {
-	outname := fname + ".final.wav"
-	args := fmt.Sprintf(volArgs, fname, src.SampleBits, outname, gain)
-	cmd := exec.Command("sox", strings.Split(args, " ")...)
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	return outname, nil
 }
 
 func downloadTrack(t *tidalapi.Track) (string, error) {
@@ -261,14 +246,6 @@ func processTrack(t *tidalapi.Track) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// defer os.Remove(fname)
-
-	// fmt.Printf("🎚 %.1f db\tØ %s db\t⟝ %s db ⟞\t⛰ %s db\n", gain, loud.Iin, loud.LRAin, loud.TPin)
-
-	// outname, err := applyGain(fname, gain, source)
-	// if err != nil {
-	// 	return "", err
-	// }
 
 	return outname, nil
 }
