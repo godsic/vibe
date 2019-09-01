@@ -38,6 +38,7 @@ const (
 var (
 	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %d dither"
 	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
+	drArgs     = "-hide_banner -i %s -af drmeter -f null /dev/null"
 	homeDir, _ = os.UserHomeDir()
 	tracksPath = homeDir + tracksPathSuffix
 )
@@ -52,6 +53,8 @@ var ffmpegOutputFmt = "  Integrated loudness:\n" +
 	"    LRA high:  %f LUFS\n\n" +
 	"  True  peak:\n" +
 	"    Peak:      %f dBFS"
+
+var drOutputFmt = "[Parsed_drmeter_0 @ %v] Overall DR: %f"
 
 func soxResample(fname string, gain float64, src *Source) (string, error) {
 	outname := fname + processedTracksSuffix
@@ -99,6 +102,27 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 			&(loudnessInfo.TP))
 		if err != nil {
 			log.Println(err)
+			return nil, err
+		}
+
+		args = fmt.Sprintf(drArgs, fname)
+		cmd = exec.Command("ffmpeg", strings.Split(args, " ")...)
+		out, err = cmd.CombinedOutput()
+		if err != nil {
+			return nil, err
+		}
+
+		outStr = string(out)
+		outStrs = strings.Split(outStr, "\n")
+		outStr = strings.Join(outStrs[len(outStrs)-2:], "\n")
+
+		addr := 0
+
+		_, err = fmt.Sscanf(outStr, drOutputFmt,
+			&(addr),
+			&(loudnessInfo.DR))
+		if err != nil {
+			log.Println(outStr, err)
 			return nil, err
 		}
 	} else {
