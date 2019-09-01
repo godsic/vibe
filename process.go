@@ -22,6 +22,7 @@ type LoudnessInfo struct {
 	TP  float64 `json:"tp"`
 	LRA float64 `json:"lra"`
 	TR  float64 `json:"thresh"`
+	DR  float64 `json:"dr"`
 }
 
 const (
