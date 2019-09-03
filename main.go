@@ -31,6 +31,7 @@ var (
 )
 
 func TUI() {
+	app.SetInputCapture(processKeyboard)
 	if err := app.Run(); err != nil {
 		panic(err)
 	}
