@@ -54,8 +54,6 @@ var ffmpegOutputFmt = "  Integrated loudness:\n" +
 	"  True  peak:\n" +
 	"    Peak:      %f dBFS"
 
-var drOutputFmt = "[Parsed_drmeter_0 @ %v] Overall DR: %f"
-
 func soxResample(fname string, gain float64, src *Source) (string, error) {
 	outname := fname + processedTracksSuffix
 
@@ -116,11 +114,10 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 		outStrs = strings.Split(outStr, "\n")
 		outStr = strings.Join(outStrs[len(outStrs)-2:], "\n")
 
-		addr := 0
+		outStrs = strings.Fields(outStr)
+		outStr = outStrs[len(outStrs)-1]
 
-		_, err = fmt.Sscanf(outStr, drOutputFmt,
-			&(addr),
-			&(loudnessInfo.DR))
+		loudnessInfo.DR, err = strconv.ParseFloat(outStr, 64)
 		if err != nil {
 			log.Println(outStr, err)
 			return nil, err
