@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/godsic/tidalapi"
 )
@@ -46,6 +47,7 @@ func trackList() func() (int, *tidalapi.Track) {
 	return func() (int, *tidalapi.Track) {
 		switch {
 		case *shuffle == true:
+			rand.Seed(time.Now().UTC().UnixNano())
 			i = rand.Intn(s)
 			return i, tracks[i]
 		default:
