@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/gen2brain/malgo"
+	"github.com/godsic/malgo"
 	"github.com/rivo/tview"
 	wav "github.com/youpy/go-wav"
 )
@@ -50,7 +50,7 @@ func closeCard() {
 }
 
 func chooseCard() error {
-	backends := []malgo.Backend{malgo.BackendAlsa, malgo.BackendWasapi}
+	backends := []malgo.Backend{malgo.BackendAlsa, malgo.BackendWasapi, malgo.BackendNull}
 
 	var err error
 
@@ -79,32 +79,30 @@ func chooseCard() error {
 
 func initSource() (err error) {
 
-	channels := uint32(2)
+	deviceConfig.DeviceType = malgo.Playback
+	deviceConfig.Playback.DeviceID = &d.ID
 	deviceConfig.Alsa.NoMMap = 1
-	deviceConfig.ShareMode = malgo.Exclusive
+	deviceConfig.Playback.ShareMode = malgo.Exclusive
 	deviceConfig.PerformanceProfile = malgo.LowLatency
 
-	deviceConfig.BufferSizeInMilliseconds = 300 * 1000
-	deviceConfig.Channels = channels
+	deviceConfig.BufferSizeInMilliseconds = 500
+	deviceConfig.Playback.Channels = uint32(2)
 	deviceConfig.SampleRate = uint32(source.SampleRate)
-	deviceConfig.Format = source.SampleFormat
+	deviceConfig.Playback.Format = source.SampleFormat
 
-	sampleSize := uint32(malgo.SampleSizeInBytes(deviceConfig.Format))
 	// This is the function that's used for sending more data to the device for playback.
-	onSendSamples := func(frameCount uint32, samples []byte) uint32 {
-		n, err := buffer.Read(samples)
+	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
+		_, err := buffer.Read(outputSamples)
 		if err == io.EOF {
-			return 0
+			return
 		}
-		frameGot := uint32(n) / channels / sampleSize
-		return frameGot
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{
-		Send: onSendSamples,
+		Data: onData,
 	}
 
-	device, err = malgo.InitDevice(ctx.Context, malgo.Playback, &d.ID, deviceConfig, deviceCallbacks)
+	device, err = malgo.InitDevice(ctx.Context, deviceConfig, deviceCallbacks)
 	if err != nil {
 		log.Println(err)
 		return err

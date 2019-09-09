@@ -1,6 +1,6 @@
 package main
 
-import "github.com/gen2brain/malgo"
+import "github.com/godsic/malgo"
 
 type Source struct {
 	Name          string
