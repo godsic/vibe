@@ -82,7 +82,6 @@ func getracklist() {
 					log.Println(err)
 				}
 			})
-			app.Draw()
 		}
 	}
 }
@@ -204,11 +203,11 @@ func main() {
 
 	tracklist.SetTitle("Tracks")
 
-	go getracklist()
+	getracklist()
+	app.SetRoot(tracklist, true)
+
 	go loopovertracks()
 	play()
-
-	app.SetRoot(tracklist, true)
 
 	<-TUIChannel
 }
