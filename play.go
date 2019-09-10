@@ -54,7 +54,7 @@ func chooseCard() error {
 
 	var err error
 
-	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{}, func(message string) {
+	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime}, func(message string) {
 		fmt.Printf("LOG <%v>\n", message)
 	})
 	if err != nil {
@@ -81,11 +81,12 @@ func initSource() (err error) {
 
 	deviceConfig.DeviceType = malgo.Playback
 	deviceConfig.Playback.DeviceID = &d.ID
-	deviceConfig.Alsa.NoMMap = 1
+	deviceConfig.Alsa.NoMMap = 0
 	deviceConfig.Playback.ShareMode = malgo.Exclusive
-	deviceConfig.PerformanceProfile = malgo.LowLatency
 
-	deviceConfig.BufferSizeInMilliseconds = 500
+	deviceConfig.BufferSizeInMilliseconds = 0
+	deviceConfig.BufferSizeInFrames = 0
+	deviceConfig.Periods = 10
 	deviceConfig.Playback.Channels = uint32(2)
 	deviceConfig.SampleRate = uint32(source.SampleRate)
 	deviceConfig.Playback.Format = source.SampleFormat
