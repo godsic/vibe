@@ -39,26 +39,36 @@ func TUI() {
 	TUIChannel <- 0
 }
 
+func removeunplayabletracks() {
+	if len(tracks) > 0 {
+		ttracks := make([]*tidalapi.Track, 0, 10)
+		for _, t := range tracks {
+			if t.AllowStreaming {
+				if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
+					continue
+				}
+				ttracks = append(ttracks, t)
+			}
+		}
+		tracks = ttracks
+	}
+}
+
 func loopovertracks() {
 	nextTrack = trackList()
 	for n, t := nextTrack(); t != nil; n, t = nextTrack() {
-		if t.AllowStreaming {
-			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
-				continue
-			}
-			tracklist.SetCurrentItem(n)
-			app.Draw()
-			fileName, err := processTrack(t)
-			if err != nil {
-				log.Println(err)
-			}
-			err = loadFileIntoBuffer(fileName)
-			if err != nil {
-				log.Println(err)
-			}
-			for buffer.Len() != 0 {
-				time.Sleep(500 * time.Millisecond)
-			}
+		tracklist.SetCurrentItem(n)
+		app.Draw()
+		fileName, err := processTrack(t)
+		if err != nil {
+			log.Println(err)
+		}
+		err = loadFileIntoBuffer(fileName)
+		if err != nil {
+			log.Println(err)
+		}
+		for buffer.Len() != 0 {
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }
@@ -68,22 +78,17 @@ func getracklist() {
 	tracklist.SetTitle("Tracklist")
 	tracklist.SetHighlightFullLine(true)
 	for _, t := range tracks {
-		if t.AllowStreaming {
-			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
-				continue
+		info := fmt.Sprintf("  [darkslategray]in [dimgray]%v [darkslategray]by [saddlebrown]%v [darkolivegreen](%v)", t.Album.Title, t.Artist.Name, t.Copyright)
+		tracklist.AddItem(t.Title, info, 0, func() {
+			fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
+			if err != nil {
+				log.Println(err)
 			}
-			info := fmt.Sprintf("  [darkslategray]in [dimgray]%v [darkslategray]by [saddlebrown]%v [darkolivegreen](%v)", t.Album.Title, t.Artist.Name, t.Copyright)
-			tracklist.AddItem(t.Title, info, 0, func() {
-				fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
-				if err != nil {
-					log.Println(err)
-				}
-				err = loadFileIntoBuffer(fileName)
-				if err != nil {
-					log.Println(err)
-				}
-			})
-		}
+			err = loadFileIntoBuffer(fileName)
+			if err != nil {
+				log.Println(err)
+			}
+		})
 	}
 }
 
