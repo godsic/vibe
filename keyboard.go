@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gdamore/tcell"
+import (
+	"log"
+
+	"github.com/gdamore/tcell"
+)
 
 func processKeyboard(event *tcell.EventKey) *tcell.EventKey {
 	switch {
@@ -9,6 +13,21 @@ func processKeyboard(event *tcell.EventKey) *tcell.EventKey {
 			device.Stop()
 		} else {
 			device.Start()
+		}
+		return nil
+	case event.Key() == tcell.KeyRight:
+		if event.Modifiers()&tcell.ModCtrl != 0 {
+			n, t := nextTrack()
+			tracklist.SetCurrentItem(n)
+			app.Draw()
+			fileName, err := processTrack(t)
+			if err != nil {
+				log.Println(err)
+			}
+			err = loadFileIntoBuffer(fileName)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 		return nil
 	default:

@@ -28,6 +28,7 @@ var (
 	tracks              = make([]*tidalapi.Track, 0, 10)
 	app                 = tview.NewApplication()
 	tracklist           = tview.NewList()
+	nextTrack           func() (int, *tidalapi.Track)
 )
 
 func TUI() {
@@ -39,7 +40,7 @@ func TUI() {
 }
 
 func loopovertracks() {
-	nextTrack := trackList()
+	nextTrack = trackList()
 	for n, t := nextTrack(); t != nil; n, t = nextTrack() {
 		if t.AllowStreaming {
 			if t.AudioQuality == tidalapi.Quality[tidalapi.HIGH] {
