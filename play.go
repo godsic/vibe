@@ -85,8 +85,8 @@ func initSource() (err error) {
 	deviceConfig.Playback.ShareMode = malgo.Exclusive
 
 	deviceConfig.BufferSizeInMilliseconds = 0
-	deviceConfig.BufferSizeInFrames = 0
-	deviceConfig.Periods = 10
+	deviceConfig.BufferSizeInFrames = 16384
+	deviceConfig.Periods = 16
 	deviceConfig.Playback.Channels = uint32(2)
 	deviceConfig.SampleRate = uint32(source.SampleRate)
 	deviceConfig.Playback.Format = source.SampleFormat
