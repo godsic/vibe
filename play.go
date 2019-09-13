@@ -86,7 +86,7 @@ func initSource() (err error) {
 
 	deviceConfig.BufferSizeInMilliseconds = 0
 	deviceConfig.BufferSizeInFrames = 16384
-	deviceConfig.Periods = 16
+	deviceConfig.Periods = 64
 	deviceConfig.Playback.Channels = uint32(2)
 	deviceConfig.SampleRate = uint32(source.SampleRate)
 	deviceConfig.Playback.Format = source.SampleFormat
