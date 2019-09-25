@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/godsic/tidalapi"
@@ -106,6 +107,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	os.Setenv("TCELL_TRUECOLOR", "disable")
 	session = tidalapi.NewSession(tidalapi.LOSSLESS)
 
 	go TUI()
