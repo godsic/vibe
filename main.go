@@ -30,6 +30,9 @@ var (
 	app                 = tview.NewApplication()
 	tracklist           = tview.NewList()
 	nextTrack           func() (int, *tidalapi.Track)
+	vibeLogFn           = tracksPath + "/vibe.log"
+	vibeLog             *os.File
+	vibeLogger          *log.Logger
 )
 
 func TUI() {
@@ -62,11 +65,11 @@ func loopovertracks() {
 		app.Draw()
 		fileName, err := processTrack(t)
 		if err != nil {
-			log.Println(err)
+			vibeLogger.Println(err)
 		}
 		err = loadFileIntoBuffer(fileName)
 		if err != nil {
-			log.Println(err)
+			vibeLogger.Println(err)
 		}
 		for buffer.Len() != 0 {
 			time.Sleep(500 * time.Millisecond)
@@ -83,11 +86,11 @@ func getracklist() {
 		tracklist.AddItem(t.Title, info, 0, func() {
 			fileName, err := processTrack(tracks[tracklist.GetCurrentItem()])
 			if err != nil {
-				log.Println(err)
+				vibeLogger.Println(err)
 			}
 			err = loadFileIntoBuffer(fileName)
 			if err != nil {
-				log.Println(err)
+				vibeLogger.Println(err)
 			}
 		})
 	}
@@ -97,14 +100,17 @@ func main() {
 
 	flag.Parse()
 
+	openLogs()
+	defer closeLogs()
+
 	err := takeCareOfTracksFolder()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 
 	err = cleanupProcessedTracks()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 
 	os.Setenv("TCELL_TRUECOLOR", "disable")
@@ -114,28 +120,28 @@ func main() {
 
 	err = credentials()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 
 	err = chooseCard()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 	defer closeCard()
 
 	err = chooseSource()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 
 	err = chooseSink()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 
 	err = initSource()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 
 	switch {
@@ -143,7 +149,7 @@ func main() {
 		obj := new(tidalapi.Track)
 		err = session.Get(tidalapi.TRACK, *track, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		tracks = append(tracks, obj)
 		break
@@ -151,7 +157,7 @@ func main() {
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.TRACKRADIO, *track, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		for i := range obj.Items {
 			tracks = append(tracks, &(obj.Items[i]))
@@ -161,7 +167,7 @@ func main() {
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.ALBUMTRACKS, *album, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		for i := range obj.Items {
 			tracks = append(tracks, &(obj.Items[i]))
@@ -171,7 +177,7 @@ func main() {
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.ARTISTTOPTRACKS, *artist, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		for i := range obj.Items {
 			tracks = append(tracks, &(obj.Items[i]))
@@ -181,7 +187,7 @@ func main() {
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.ARTISTRADIO, *artist, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		for i := range obj.Items {
 			tracks = append(tracks, &(obj.Items[i]))
@@ -191,7 +197,7 @@ func main() {
 		obj := new(tidalapi.Tracks)
 		err = session.Get(tidalapi.PLAYLISTTRACKS, *playlist, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		for i := range obj.Items {
 			tracks = append(tracks, &(obj.Items[i]))
@@ -201,7 +207,7 @@ func main() {
 		obj := new(tidalapi.TracksFavorite)
 		err = session.Get(tidalapi.FAVORITETRACKS, session.User, obj)
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 		for i := range obj.Items {
 			tracks = append(tracks, &(obj.Items[i].Item))

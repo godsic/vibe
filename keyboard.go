@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gdamore/tcell"
 )
 
@@ -22,11 +20,11 @@ func processKeyboard(event *tcell.EventKey) *tcell.EventKey {
 			app.Draw()
 			fileName, err := processTrack(t)
 			if err != nil {
-				log.Println(err)
+				vibeLogger.Println(err)
 			}
 			err = loadFileIntoBuffer(fileName)
 			if err != nil {
-				log.Println(err)
+				vibeLogger.Println(err)
 			}
 		}
 		return nil

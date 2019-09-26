@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"os"
@@ -99,7 +98,7 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 			&dummy,
 			&(loudnessInfo.TP))
 		if err != nil {
-			log.Println(err)
+			vibeLogger.Println(err)
 			return nil, err
 		}
 
@@ -119,24 +118,24 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 
 		loudnessInfo.DR, err = strconv.ParseFloat(outStr, 64)
 		if err != nil {
-			log.Println(outStr, err)
+			vibeLogger.Println(outStr, err)
 			return nil, err
 		}
 	} else {
 		err = json.Unmarshal(outBytes, loudnessInfo)
 		if err != nil {
-			log.Println(err)
+			vibeLogger.Println(err)
 			return nil, err
 		}
 	}
 
 	outBytes, err = json.Marshal(loudnessInfo)
 	if err != nil {
-		log.Println(err)
+		vibeLogger.Println(err)
 	}
 	err = ioutil.WriteFile(fnameLoud, outBytes, 0640)
 	if err != nil {
-		log.Println(err)
+		vibeLogger.Println(err)
 	}
 
 	return loudnessInfo, nil
@@ -275,7 +274,7 @@ func processTracks() {
 	for {
 		fileName, err := processTrack(<-processingChannel)
 		if err != nil {
-			log.Println(err)
+			vibeLogger.Println(err)
 			continue
 		}
 

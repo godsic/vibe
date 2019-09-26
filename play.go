@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strconv"
 	"sync"
@@ -44,7 +43,7 @@ var (
 func closeCard() {
 	err := ctx.Uninit()
 	if err != nil {
-		log.Println(err)
+		vibeLogger.Println(err)
 	}
 	ctx.Free()
 }
@@ -105,7 +104,7 @@ func initSource() (err error) {
 
 	device, err = malgo.InitDevice(ctx.Context, deviceConfig, deviceCallbacks)
 	if err != nil {
-		log.Println(err)
+		vibeLogger.Println(err)
 		return err
 	}
 	return nil
@@ -115,7 +114,7 @@ func play() error {
 
 	err := device.Start()
 	if err != nil {
-		log.Fatal(err)
+		vibeLogger.Fatal(err)
 	}
 	return nil
 }
@@ -124,7 +123,7 @@ func pause() error {
 	if device.IsStarted() {
 		err := device.Stop()
 		if err != nil {
-			log.Fatal(err)
+			vibeLogger.Fatal(err)
 		}
 	}
 	return nil

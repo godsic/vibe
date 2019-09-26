@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -57,5 +58,20 @@ func trackList() func() (int, *tidalapi.Track) {
 			}
 			return -1, nil
 		}
+	}
+}
+
+func openLogs() {
+	var err error
+	vibeLog, err = os.OpenFile(vibeLogFn, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vibeLogger = log.New(vibeLog, "LOG:", log.LstdFlags)
+}
+
+func closeLogs() {
+	if err := vibeLog.Close(); err != nil {
+		log.Fatal(err)
 	}
 }
