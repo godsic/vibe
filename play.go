@@ -94,6 +94,8 @@ func initSource() (err error) {
 	deviceConfig.Wasapi.NoAutoConvertSRC = 1
 	deviceConfig.Wasapi.NoDefaultQualitySRC = 0
 
+	deviceConfig.NoClip = 1
+
 	// This is the function that's used for sending more data to the device for playback.
 	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
 		tIn := time.Now()
