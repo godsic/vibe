@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/godsic/malgo"
 	"github.com/rivo/tview"
@@ -92,10 +93,14 @@ func initSource() (err error) {
 
 	// This is the function that's used for sending more data to the device for playback.
 	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
-		_, err := buffer.Read(outputSamples)
+		tIn := time.Now()
+		n, err := buffer.Read(outputSamples)
 		if err == io.EOF {
 			return
 		}
+		tOut := time.Now()
+		jd := jitterData{timeIn: tIn, timeOut: tOut, requestedBytes: frameCount, readBytes: n}
+		timeChannel <- jd
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{

@@ -16,7 +16,15 @@ var (
 		tidalapi.Quality[tidalapi.MASTER]:   "🆨",
 		tidalapi.Quality[tidalapi.HIGH]:     tidalapi.Quality[tidalapi.HIGH],
 		tidalapi.Quality[tidalapi.LOW]:      "💩"}
+	timeChannel = make(chan jitterData, 1000)
 )
+
+type jitterData struct {
+	timeIn         time.Time
+	timeOut        time.Time
+	requestedBytes uint32
+	readBytes      int
+}
 
 func year(date string) string {
 	if len(date) == 0 {
@@ -68,10 +76,33 @@ func openLogs() {
 		log.Fatal(err)
 	}
 	vibeLogger = log.New(vibeLog, "LOG:", log.LstdFlags)
+
+	jitterLog, err = os.OpenFile(jitterLogFn, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jitterLogger = log.New(jitterLog, "", log.Ltime|log.Lmicroseconds)
 }
 
 func closeLogs() {
 	if err := vibeLog.Close(); err != nil {
 		log.Fatal(err)
+	}
+	if err := jitterLog.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func jitterWatch() {
+	jd0 := <-timeChannel
+	t0 := jd0.timeIn
+	for jd := range timeChannel {
+		t := jd.timeIn
+		dt := t.Sub(t0)
+		t0 = t
+		dtCallback := jd.timeOut.Sub(jd.timeIn)
+		if *jitter {
+			jitterLogger.Printf("%v %v %v %v\n", dt.Nanoseconds(), dtCallback.Nanoseconds(), jd.requestedBytes, jd.requestedBytes)
+		}
 	}
 }
