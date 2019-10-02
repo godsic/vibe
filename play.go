@@ -91,6 +91,9 @@ func initSource() (err error) {
 	deviceConfig.SampleRate = uint32(source.SampleRate)
 	deviceConfig.Playback.Format = source.SampleFormat
 
+	deviceConfig.Wasapi.NoAutoConvertSRC = 1
+	deviceConfig.Wasapi.NoDefaultQualitySRC = 0
+
 	// This is the function that's used for sending more data to the device for playback.
 	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
 		tIn := time.Now()
