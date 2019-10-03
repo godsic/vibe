@@ -222,6 +222,8 @@ func main() {
 		break
 	}
 
+	removeunplayabletracks()
+
 	tracklist.SetTitle("Tracks")
 
 	getracklist()
