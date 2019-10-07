@@ -93,6 +93,10 @@ func closeLogs() {
 	}
 }
 
+func miniaudioLogger(message string) {
+	vibeLogger.Printf("miniaudio: %v\n", message)
+}
+
 func jitterWatch() {
 	jd0 := <-timeChannel
 	t0 := jd0.timeIn

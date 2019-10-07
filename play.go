@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -54,9 +53,7 @@ func chooseCard() error {
 
 	var err error
 
-	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime}, func(message string) {
-		fmt.Printf("LOG <%v>\n", message)
-	})
+	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime}, miniaudioLogger)
 	if err != nil {
 		return err
 	}
