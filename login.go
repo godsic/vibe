@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
@@ -15,6 +16,8 @@ func credentials() error {
 
 		err := session.Login(username, password)
 		if err != nil {
+			form.SetFieldBackgroundColor(tcell.ColorRed)
+			app.Draw()
 		} else {
 			done <- 0
 		}
