@@ -23,6 +23,7 @@ var (
 	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
 	shuffle             = flag.Bool("shuffle", false, "toggle shuffle mode.")
 	jitter              = flag.Bool("jitter", false, "toggle jitter logging")
+	search              = flag.Bool("find", false, "toggle find dialog at startup")
 	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
@@ -151,6 +152,9 @@ func main() {
 		vibeLogger.Fatal(err)
 	}
 
+	if *search {
+		find()
+	}
 	switch {
 	case *track > 0 && *radio == false:
 		obj := new(tidalapi.Track)
