@@ -31,5 +31,4 @@ func processKeyboard(event *tcell.EventKey) *tcell.EventKey {
 	default:
 		return event
 	}
-	return event
 }
