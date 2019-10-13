@@ -21,6 +21,10 @@ func credentials() error {
 		} else {
 			done <- 0
 		}
+		err = session.SaveSession(sessionFn)
+		if err != nil {
+			vibeLogger.Println(err)
+		}
 	})
 
 	form.SetBorder(true).SetTitle("Tidal credentials").SetTitleAlign(tview.AlignCenter)

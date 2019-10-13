@@ -32,6 +32,7 @@ var (
 	nextTrack           func() (int, *tidalapi.Track)
 	vibeLogFn           = tracksPath + "/vibe.log"
 	jitterLogFn         = tracksPath + "/jitter.log"
+	sessionFn           = tracksPath + "session.json"
 	vibeLog             *os.File
 	jitterLog           *os.File
 	vibeLogger          *log.Logger
@@ -71,9 +72,13 @@ func main() {
 
 	go TUI()
 
-	err = credentials()
-	if err != nil {
-		vibeLogger.Fatal(err)
+	err = session.LoadSession(sessionFn)
+
+	if err != nil && session.IsValid() == false {
+		err = credentials()
+		if err != nil {
+			vibeLogger.Fatal(err)
+		}
 	}
 
 	err = chooseCard()
