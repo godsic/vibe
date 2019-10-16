@@ -61,7 +61,7 @@ func soxResample(fname string, gain float64, src *Source) (string, error) {
 		return outname, nil
 	}
 
-	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, source.SampleRate)
+	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, src.SampleRate)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err = cmd.CombinedOutput()
 	if err != nil {
@@ -260,9 +260,9 @@ func processTrack(t *tidalapi.Track) (string, error) {
 		return "", err
 	}
 
-	gain := getGain(source, sink, loud)
+	gain := getGain(source.dev.(*Source), sink.dev.(*Sink), loud)
 
-	outname, err := soxResample(fname, gain, source)
+	outname, err := soxResample(fname, gain, source.dev.(*Source))
 	if err != nil {
 		return "", err
 	}

@@ -84,8 +84,8 @@ func initSource() (err error) {
 	deviceConfig.BufferSizeInMilliseconds = 64
 	deviceConfig.Periods = 16
 	deviceConfig.Playback.Channels = uint32(2)
-	deviceConfig.SampleRate = uint32(source.SampleRate)
-	deviceConfig.Playback.Format = source.SampleFormat
+	deviceConfig.SampleRate = uint32(source.dev.(*Source).SampleRate)
+	deviceConfig.Playback.Format = source.dev.(*Source).SampleFormat
 
 	deviceConfig.Wasapi.NoAutoConvertSRC = 1
 	deviceConfig.Wasapi.NoDefaultQualitySRC = 0

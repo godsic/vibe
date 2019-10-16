@@ -14,7 +14,7 @@ var (
 		NewSource("Onkyo A-9010 (TOSLINK)", 1.0, 0.09, 48000, 32, "Software"),
 	}
 	sourceNum int
-	source    *Source
+	source    = NewAudioDevice(SOURCE)
 )
 
 func chooseSource() error {
@@ -27,6 +27,10 @@ func chooseSource() error {
 	app.SetRoot(list, true).Draw()
 
 	<-done
-	source = Sources[list.GetCurrentItem()]
+	source.Name, _ = list.GetItemText(list.GetCurrentItem())
+	err := source.Set()
+	if err != nil {
+		vibeLogger.Fatalln(err)
+	}
 	return nil
 }

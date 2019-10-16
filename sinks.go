@@ -16,7 +16,7 @@ var (
 	}
 
 	sinkNum int
-	sink    *Sink
+	sink    = NewAudioDevice(SINK)
 )
 
 func chooseSink() error {
@@ -29,6 +29,10 @@ func chooseSink() error {
 	app.SetRoot(list, true).Draw()
 
 	<-done
-	sink = Sinks[list.GetCurrentItem()]
+	sink.Name, _ = list.GetItemText(list.GetCurrentItem())
+	err := sink.Set()
+	if err != nil {
+		vibeLogger.Fatalln(err)
+	}
 	return nil
 }
