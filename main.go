@@ -33,6 +33,8 @@ var (
 	vibeLogFn           = tracksPath + "/vibe.log"
 	jitterLogFn         = tracksPath + "/jitter.log"
 	sessionFn           = tracksPath + "session.json"
+	sinkCfgFn           = tracksPath + "sink.json"
+	sourceCfgFn         = tracksPath + "source.json"
 	vibeLog             *os.File
 	jitterLog           *os.File
 	vibeLogger          *log.Logger
@@ -87,14 +89,30 @@ func main() {
 	}
 	defer closeCard()
 
-	err = chooseSource()
+	err = source.Load(sourceCfgFn)
 	if err != nil {
-		vibeLogger.Fatal(err)
+		vibeLogger.Println(err)
+		err = chooseSource()
+		if err != nil {
+			vibeLogger.Fatal(err)
+		}
+		err = source.Save(sourceCfgFn)
+		if err != nil {
+			vibeLogger.Fatal(err)
+		}
 	}
 
-	err = chooseSink()
+	err = sink.Load(sinkCfgFn)
 	if err != nil {
-		vibeLogger.Fatal(err)
+		vibeLogger.Println(err)
+		err = chooseSink()
+		if err != nil {
+			vibeLogger.Fatal(err)
+		}
+		err = sink.Save(sinkCfgFn)
+		if err != nil {
+			vibeLogger.Fatal(err)
+		}
 	}
 
 	err = initSource()
