@@ -51,13 +51,24 @@ func cleanupProcessedTracks() (err error) {
 }
 
 func trackList() func() (int, *tidalapi.Track) {
+	history := make([]int, 10)
 	i := -1
 	s := len(tracks)
 	return func() (int, *tidalapi.Track) {
 		switch {
 		case *shuffle == true:
 			rand.Seed(time.Now().UTC().UnixNano())
-			i = rand.Intn(s)
+			notunique := true
+			for notunique {
+				i = rand.Intn(s)
+				for _, v := range history {
+					if v == i {
+						continue
+					}
+				}
+				notunique = false
+			}
+			history = append(history[1:], i)
 			return i, tracks[i]
 		default:
 			i++
