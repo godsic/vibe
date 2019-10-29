@@ -44,7 +44,7 @@ var (
 )
 
 var (
-	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p %d -t -b 95 %d dither"
+	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -Q 7 -c 65536 -p %d -t -b 95 %d dither"
 	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	drArgs     = "-hide_banner -i %s -af drmeter -f null /dev/null"
 	homeDir, _ = os.UserHomeDir()
