@@ -35,7 +35,16 @@ const (
 )
 
 var (
-	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p 45 -t -b 95 %d dither"
+	phaseMap = map[string]int{
+		"minimum":      0,
+		"intermediate": 25,
+		"goldilocks":   45,
+		"linear":       50,
+	}
+)
+
+var (
+	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -c 4096 -p %d -t -b 95 %d dither"
 	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	drArgs     = "-hide_banner -i %s -af drmeter -f null /dev/null"
 	homeDir, _ = os.UserHomeDir()
@@ -61,7 +70,7 @@ func soxResample(fname string, gain float64, src *Source) (string, error) {
 		return outname, nil
 	}
 
-	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, src.SampleRate)
+	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, phaseMap[*phase], src.SampleRate)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err = cmd.CombinedOutput()
 	if err != nil {

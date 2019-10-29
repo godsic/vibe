@@ -22,6 +22,7 @@ var (
 	shuffle             = flag.Bool("shuffle", false, "toggle shuffle mode.")
 	jitter              = flag.Bool("jitter", false, "toggle jitter logging")
 	search              = flag.Bool("find", false, "toggle find dialog at startup")
+	phase               = flag.String("phase", "goldilocks", "resampler filter phase response (minimum, intermediate, archimago's goldilocks or linear)")
 	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)
@@ -55,6 +56,8 @@ func main() {
 
 	openLogs()
 	defer closeLogs()
+
+	vibeLogger.Printf("Re-sampler filter phase response: %v (%v)\n", *phase, phaseMap[*phase])
 
 	go jitterWatch()
 	defer close(timeChannel)
