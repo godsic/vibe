@@ -301,10 +301,11 @@ func processTrack(t *tidalapi.Track) (string, error) {
 	}
 
 	if t.AudioQuality == tidalapi.Quality[tidalapi.MASTER] {
-		fname, _ = MQADecode(fname)
-		defer os.Remove(fname)
-		fname, _ = MQARender(fname)
-		defer os.Remove(fname)
+		decFname, _ := MQADecode(fname)
+		defer os.Remove(decFname)
+		rendFname, _ := MQARender(decFname)
+		defer os.Remove(rendFname)
+		fname = rendFname
 
 	}
 
