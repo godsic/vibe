@@ -31,6 +31,9 @@ const (
 
 const (
 	tracksPathSuffix      = "/.tracks/"
+	noiseFilename         = "noise.wav"
+	noiseSuffix           = ".noise"
+	noisedTracksSuffix    = ".noised"
 	processedTracksSuffix = ".sox"
 )
 
@@ -44,11 +47,13 @@ var (
 )
 
 var (
-	soxArgs    = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -Q 7 -c 65536 -p %d -t -b 90 %d dither"
-	ffmpegArgs = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
-	drArgs     = "-hide_banner -i %s -af drmeter -f null /dev/null"
-	homeDir, _ = os.UserHomeDir()
-	tracksPath = homeDir + tracksPathSuffix
+	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -Q 7 -c 65536 -p %d -t -b 90 %d dither"
+	ffmpegArgs   = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
+	noiseArgs    = "-G %s -t wav %s synth whitenoise gain %+.2g"
+	mixNoiseArgs = "-G -m %s %s -t wav %s"
+	drArgs       = "-hide_banner -i %s -af drmeter -f null /dev/null"
+	homeDir, _   = os.UserHomeDir()
+	tracksPath   = homeDir + tracksPathSuffix
 )
 
 var ffmpegOutputFmt = "  Integrated loudness:\n" +
@@ -74,6 +79,44 @@ func soxResample(fname string, gain float64, src *Source) (string, error) {
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err = cmd.CombinedOutput()
 	if err != nil {
+		return "", err
+	}
+	return outname, nil
+}
+
+func generateWhiteNoise(fname string, gain float64) (string, error) {
+	outname := fname + noiseSuffix
+
+	_, err := os.Stat(outname)
+	if !os.IsNotExist(err) {
+		return outname, nil
+	}
+
+	args := fmt.Sprintf(noiseArgs, fname, outname, gain)
+	vibeLogger.Println(args)
+	cmd := exec.Command("sox", strings.Split(args, " ")...)
+	msg, err := cmd.CombinedOutput()
+	if err != nil {
+		vibeLogger.Println(string(msg))
+		return "", err
+	}
+	return outname, err
+}
+
+func addWhiteNoise(fname, noiseFname string) (string, error) {
+	outname := fname + noisedTracksSuffix
+
+	_, err := os.Stat(outname)
+	if !os.IsNotExist(err) {
+		return outname, nil
+	}
+
+	args := fmt.Sprintf(mixNoiseArgs, fname, noiseFname, outname)
+	vibeLogger.Println(args)
+	cmd := exec.Command("sox", strings.Split(args, " ")...)
+	msg, err := cmd.CombinedOutput()
+	if err != nil {
+		vibeLogger.Println(string(msg))
 		return "", err
 	}
 	return outname, nil
@@ -241,13 +284,13 @@ func MQARender(fname string) (string, error) {
 	return outname, nil
 }
 
-func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) float64 {
+func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) (float64, float64) {
 	rtot := src.Rl + sink.R
 	vl := src.Vout * (sink.R / rtot)
 	splMax := sink.Sensitivity + 20.*math.Log10(vl)
 	targetSplRel := *targetSpl - splMax
 	gain := math.Round(targetSplRel - loudness.I)
-	return gain
+	return gain, splMax
 }
 
 func processTrack(t *tidalapi.Track) (string, error) {
@@ -262,6 +305,7 @@ func processTrack(t *tidalapi.Track) (string, error) {
 		defer os.Remove(fname)
 		fname, _ = MQARender(fname)
 		defer os.Remove(fname)
+
 	}
 
 	loud, err := ffmpegLoudnorm(fname)
@@ -269,8 +313,34 @@ func processTrack(t *tidalapi.Track) (string, error) {
 		return "", err
 	}
 
-	gain := getGain(source.dev.(*Source), sink.dev.(*Sink), loud)
+	gain, splMax := getGain(source.dev.(*Source), sink.dev.(*Sink), loud)
 
+	if *noiseSpl != 0.0 {
+
+		noiseGain := 0.0
+
+		switch {
+		case *noiseSpl < 0.0:
+			noiseGain = loud.I + *noiseSpl
+			break
+		case *noiseSpl > 0.0:
+			noiseGain = *noiseSpl - splMax - gain
+			break
+		}
+
+		noiseFname, err := generateWhiteNoise(fname, noiseGain)
+		if err != nil {
+			return "", err
+		}
+		defer os.Remove(noiseFname)
+
+		noisedFname, err := addWhiteNoise(fname, noiseFname)
+		if err != nil {
+			return "", err
+		}
+		defer os.Remove(noisedFname)
+		fname = noisedFname
+	}
 	outname, err := soxResample(fname, gain, source.dev.(*Source))
 	if err != nil {
 		return "", err
