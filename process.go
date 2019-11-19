@@ -47,7 +47,7 @@ var (
 )
 
 var (
-	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -R 198 -Q 7 -c 65536 -p %d -t -b 90 %d dither"
+	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -d 33 -p %d -t -b 92 %d dither"
 	ffmpegArgs   = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	noiseArgs    = "-G %s -t wav %s synth whitenoise gain %+.2g"
 	mixNoiseArgs = "-G -m %s %s -t wav %s"
