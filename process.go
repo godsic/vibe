@@ -47,10 +47,10 @@ var (
 )
 
 var (
-	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -b %d %s gain %+.2g rate -a -d 33 -p %d -t -b 92 %d dither"
+	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -e signed-integer -b %d %s gain %+.2g rate -a -d 33 -p %d -t -b 92 %d dither"
 	ffmpegArgs   = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
-	noiseArgs    = "-G %s -t wav %s synth whitenoise gain %+.2g"
-	mixNoiseArgs = "-G -m %s %s -t wav %s"
+	noiseArgs    = "-G %s -b 32 -e float -t wav %s synth whitenoise gain %+.2g"
+	mixNoiseArgs = "-G -m %s %s -b 32 -e float -t wav %s"
 	drArgs       = "-hide_banner -i %s -af drmeter -f null /dev/null"
 	homeDir, _   = os.UserHomeDir()
 	tracksPath   = homeDir + tracksPathSuffix
