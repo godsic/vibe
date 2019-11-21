@@ -341,6 +341,8 @@ func processTrack(t *tidalapi.Track) (string, error) {
 		}
 		defer os.Remove(noisedFname)
 		fname = noisedFname
+
+		gain += 6.0
 	}
 	outname, err := soxResample(fname, gain, source.dev.(*Source))
 	if err != nil {
