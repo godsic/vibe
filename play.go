@@ -145,11 +145,9 @@ func loadFileIntoBuffer(fname string) error {
 
 	r := wav.NewReader(f)
 
-	newbuffer := new(bytes.Buffer)
-	newbuffer.ReadFrom(r)
-	// buffer.Reset()
 	bufferMutex.Lock()
-	buffer = *newbuffer
+	buffer.Reset()
+	buffer.ReadFrom(r)
 	bufferMutex.Unlock()
 	return nil
 }
