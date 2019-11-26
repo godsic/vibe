@@ -53,7 +53,7 @@ func chooseCard() error {
 
 	var err error
 
-	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime}, miniaudioLogger)
+	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime, Alsa: malgo.AlsaContextConfig{UseVerboseDeviceEnumeration: 1}}, miniaudioLogger)
 	if err != nil {
 		return err
 	}
