@@ -14,11 +14,14 @@ import (
 )
 
 var (
-	device       = new(malgo.Device)
-	deviceConfig = malgo.DefaultDeviceConfig()
-	playerCtl    = make(chan int)
-	buffer       bytes.Buffer
-	bufferMutex  sync.Mutex
+	device        = new(malgo.Device)
+	deviceConfig  = malgo.DefaultDeviceConfig()
+	playerCtl     = make(chan int)
+	buffer        bytes.Buffer
+	bufferMutex   sync.Mutex
+	contextConfig = malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime,
+		Alsa: malgo.AlsaContextConfig{UseVerboseDeviceEnumeration: 1},
+	}
 )
 
 func bitsPerSampleToDeviceFormat(bitsPerSample int) malgo.FormatType {
@@ -53,7 +56,7 @@ func chooseCard() error {
 
 	var err error
 
-	ctx, err = malgo.InitContext(backends, malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime, Alsa: malgo.AlsaContextConfig{UseVerboseDeviceEnumeration: 1}}, miniaudioLogger)
+	ctx, err = malgo.InitContext(backends, contextConfig, miniaudioLogger)
 	if err != nil {
 		return err
 	}
@@ -81,7 +84,7 @@ func initSource() (err error) {
 	deviceConfig.Alsa.NoMMap = 0
 	deviceConfig.Playback.ShareMode = malgo.Exclusive
 
-	deviceConfig.BufferSizeInMilliseconds = 64
+	deviceConfig.PeriodSizeInMilliseconds = 4
 	deviceConfig.Periods = 16
 	deviceConfig.Playback.Channels = uint32(2)
 	deviceConfig.SampleRate = uint32(source.dev.(*Source).SampleRate)
@@ -89,6 +92,8 @@ func initSource() (err error) {
 
 	deviceConfig.Wasapi.NoAutoConvertSRC = 1
 	deviceConfig.Wasapi.NoDefaultQualitySRC = 0
+	deviceConfig.Wasapi.NoHardwareOffloading = 1
+	deviceConfig.Wasapi.NoAutoStreamRouting = 1
 
 	deviceConfig.NoClip = 1
 	deviceConfig.NoPreZeroedOutputBuffer = 0
