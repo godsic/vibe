@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"runtime/trace"
 
 	"github.com/godsic/tidalapi"
 	"github.com/rivo/tview"
@@ -18,6 +19,7 @@ var (
 	radio               = flag.Bool("radio", false, "toggle radio (works with --artist and --track")
 	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
 	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
+	profile             = flag.String("profile", "", "Dump runtime trace to specified file")
 	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
 	noiseSpl            = flag.Float64("noise", 0.0, "add white noise (negative value is with respect to the target SPL, positive - absolute SPL")
 	shuffle             = flag.Bool("shuffle", false, "toggle shuffle mode.")
@@ -142,6 +144,18 @@ func main() {
 	app.SetRoot(tracklist, true)
 
 	go loopovertracks()
+
+	if *profile != "" {
+		f, err := os.Create(*profile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		trace.Start(f)
+		defer trace.Stop()
+	}
+
 	play()
 
 	<-TUIChannel
