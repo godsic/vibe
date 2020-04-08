@@ -47,7 +47,7 @@ var (
 )
 
 var (
-	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -e signed-integer -b %d %s gain %+.2g rate -a -d 33 -p %d -t -b 92 %d dither"
+	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -e signed-integer -b %d %s gain %+.2g rate -a -d 33 -p %d -t -b 92 %d %s"
 	ffmpegArgs   = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	noiseArgs    = "-G %s -b 32 -e float -t wav %s synth whitenoise gain %+.2g"
 	mixNoiseArgs = "-G -m %s %s -b 32 -e float -t wav %s"
@@ -67,7 +67,7 @@ var ffmpegOutputFmt = "  Integrated loudness:\n" +
 	"  True  peak:\n" +
 	"    Peak:      %f dBFS"
 
-func soxResample(fname string, gain float64, src *Source) (string, error) {
+func soxResample(fname string, gain float64, src *Source, sink *Sink) (string, error) {
 	outname := fname + processedTracksSuffix
 
 	_, err := os.Stat(outname)
@@ -75,7 +75,16 @@ func soxResample(fname string, gain float64, src *Source) (string, error) {
 		return outname, nil
 	}
 
-	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, phaseMap[*phase], src.SampleRate)
+	SoxArgs := ""
+
+	if len(sink.SoxArgs) > 0 {
+		SoxArgs = sink.SoxArgs + " dither"
+	} else {
+		SoxArgs = "dither"
+	}
+
+	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, phaseMap[*phase], src.SampleRate, SoxArgs)
+	vibeLogger.Println(args)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err = cmd.CombinedOutput()
 	if err != nil {
@@ -344,7 +353,7 @@ func processTrack(t *tidalapi.Track) (string, error) {
 
 		gain += 6.0
 	}
-	outname, err := soxResample(fname, gain, source.dev.(*Source))
+	outname, err := soxResample(fname, gain, source.dev.(*Source), sink.dev.(*Sink))
 	if err != nil {
 		return "", err
 	}
