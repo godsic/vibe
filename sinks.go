@@ -13,6 +13,8 @@ var (
 		NewSink("Sennheiser HD4.30", 23.0, 116.0, ""),
 		NewSink("Sennheiser PX90", 35.3, 104.5, ""),
 		NewSink("95 db SPL at full scale", 100e3, 95, ""),
+		NewSink("Triangle Plaisir Kari", 6.0, 90.0, ""),
+		NewSink("Triangle Plaisir Kari (equalized)", 6.0, 85.0, "equalizer 72.9 1.307q -5.5 equalizer 9518 1.135q -5.7"),
 	}
 
 	sinkNum int
