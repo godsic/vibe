@@ -26,6 +26,7 @@ var (
 	jitter              = flag.Bool("jitter", false, "toggle jitter logging")
 	search              = flag.Bool("find", false, "toggle find dialog at startup")
 	phase               = flag.String("phase", "goldilocks", "resampler filter phase response (minimum, intermediate, archimago's goldilocks or linear)")
+	distance            = flag.Float64("distance", 1.0, "distance to speakers (applies to speakers only)")
 	processingChannel   = make(chan *tidalapi.Track, 1)
 	playerChannel       = make(chan string, 1)
 	playerStatusChannel = make(chan int, 1)

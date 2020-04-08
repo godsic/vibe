@@ -298,7 +298,8 @@ func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) (float64, float64)
 	vl := src.Vout * (sink.R / rtot)
 	splMax := sink.Sensitivity + 20.*math.Log10(vl)
 	targetSplRel := *targetSpl - splMax
-	gain := math.Round(targetSplRel - loudness.I)
+	distanceLoss := 20. * math.Log10(*distance)
+	gain := math.Round(targetSplRel - loudness.I + distanceLoss)
 	return gain, splMax
 }
 
