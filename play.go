@@ -81,7 +81,6 @@ func initSource() (err error) {
 
 	deviceConfig.DeviceType = malgo.Playback
 	deviceConfig.Playback.DeviceID = &d.ID
-	deviceConfig.Alsa.NoMMap = 0
 	deviceConfig.Playback.ShareMode = malgo.Exclusive
 
 	deviceConfig.PeriodSizeInMilliseconds = 4
@@ -94,6 +93,11 @@ func initSource() (err error) {
 	deviceConfig.Wasapi.NoDefaultQualitySRC = 0
 	deviceConfig.Wasapi.NoHardwareOffloading = 1
 	deviceConfig.Wasapi.NoAutoStreamRouting = 1
+
+	deviceConfig.Alsa.NoMMap = 0
+	deviceConfig.Alsa.NoAutoResample = 1
+	deviceConfig.Alsa.NoAutoFormat = 1
+	deviceConfig.Alsa.NoAutoChannels = 1
 
 	deviceConfig.NoClip = 1
 	deviceConfig.NoPreZeroedOutputBuffer = 0
