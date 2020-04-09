@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"io"
 	"os"
 	"strconv"
 	"sync"
@@ -105,10 +104,7 @@ func initSource() (err error) {
 	// This is the function that's used for sending more data to the device for playback.
 	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
 		tIn := time.Now()
-		n, err := buffer.Read(outputSamples)
-		if err == io.EOF {
-			return
-		}
+		n, _ := buffer.Read(outputSamples)
 		tOut := time.Now()
 		jd := jitterData{timeIn: tIn, timeOut: tOut, requestedBytes: frameCount, readBytes: n}
 		timeChannel <- jd
