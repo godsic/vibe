@@ -103,11 +103,15 @@ func initSource() (err error) {
 
 	// This is the function that's used for sending more data to the device for playback.
 	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
-		tIn := time.Now()
-		n, _ := buffer.Read(outputSamples)
-		tOut := time.Now()
-		jd := jitterData{timeIn: tIn, timeOut: tOut, requestedBytes: frameCount, readBytes: n}
-		timeChannel <- jd
+		if *jitter {
+			tIn := time.Now()
+			n, _ := buffer.Read(outputSamples)
+			tOut := time.Now()
+			jd := jitterData{timeIn: tIn, timeOut: tOut, requestedBytes: frameCount, readBytes: n}
+			timeChannel <- jd
+		} else {
+			buffer.Read(outputSamples)
+		}
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{

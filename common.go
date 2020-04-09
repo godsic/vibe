@@ -109,14 +109,14 @@ func miniaudioLogger(message string) {
 }
 
 func jitterWatch() {
-	jd0 := <-timeChannel
-	t0 := jd0.timeIn
-	for jd := range timeChannel {
-		t := jd.timeIn
-		dt := t.Sub(t0)
-		t0 = t
-		dtCallback := jd.timeOut.Sub(jd.timeIn)
-		if *jitter {
+	if *jitter {
+		jd0 := <-timeChannel
+		t0 := jd0.timeIn
+		for jd := range timeChannel {
+			t := jd.timeIn
+			dt := t.Sub(t0)
+			t0 = t
+			dtCallback := jd.timeOut.Sub(jd.timeIn)
 			jitterLogger.Printf("%v %v %v %v\n", dt.Nanoseconds(), dtCallback.Nanoseconds(), jd.requestedBytes, jd.requestedBytes)
 		}
 	}
