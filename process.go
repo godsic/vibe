@@ -361,15 +361,3 @@ func processTrack(t *tidalapi.Track) (string, error) {
 
 	return outname, nil
 }
-
-func processTracks() {
-	for {
-		fileName, err := processTrack(<-processingChannel)
-		if err != nil {
-			vibeLogger.Println(err)
-			continue
-		}
-
-		playerChannel <- fileName
-	}
-}
