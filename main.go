@@ -7,6 +7,7 @@ import (
 	"runtime/trace"
 
 	"github.com/godsic/tidalapi"
+	_ "github.com/ianlancetaylor/cgosymbolizer"
 	"github.com/rivo/tview"
 )
 
