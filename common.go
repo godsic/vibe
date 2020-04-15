@@ -33,8 +33,14 @@ func year(date string) string {
 	return date[0:4]
 }
 
-func takeCareOfTracksFolder() (err error) {
-	return os.MkdirAll(tracksPath, 0700)
+func takeCareOfUserFolder() (err error) {
+	for _, v := range []string{configPath, tracksPath, logsPath} {
+		err = os.MkdirAll(v, 0700)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 func cleanupProcessedTracks() (err error) {

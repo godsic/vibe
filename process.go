@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -30,7 +31,6 @@ const (
 )
 
 const (
-	tracksPathSuffix      = "/.tracks/"
 	noiseFilename         = "noise.wav"
 	noiseSuffix           = ".noise"
 	noisedTracksSuffix    = ".noised"
@@ -52,8 +52,6 @@ var (
 	noiseArgs    = "-G %s -b 32 -e float -t wav %s synth whitenoise gain %+.2g"
 	mixNoiseArgs = "-G -m %s %s -b 32 -e float -t wav %s"
 	drArgs       = "-hide_banner -i %s -af drmeter -f null /dev/null"
-	homeDir, _   = os.UserHomeDir()
-	tracksPath   = homeDir + tracksPathSuffix
 )
 
 var ffmpegOutputFmt = "  Integrated loudness:\n" +
@@ -203,7 +201,7 @@ func ffmpegLoudnorm(fname string) (*LoudnessInfo, error) {
 }
 
 func downloadTrack(t *tidalapi.Track) (string, error) {
-	fname := tracksPath + strconv.Itoa(t.ID)
+	fname := filepath.Join(tracksPath, strconv.Itoa(t.ID))
 
 	_, err := os.Stat(fname)
 	if !os.IsNotExist(err) {

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime/trace"
 
 	"github.com/godsic/tidalapi"
@@ -12,39 +13,48 @@ import (
 )
 
 var (
-	session             *tidalapi.Session
-	track               = flag.Int("track", -1, "provide Tidal track ID.")
-	album               = flag.Int("album", -1, "provide Tidal album ID.")
-	playlist            = flag.String("playlist", "", "provide Tidal playlist ID.")
-	artist              = flag.Int("artist", -1, "provide Tidal artist ID.")
-	radio               = flag.Bool("radio", false, "toggle radio (works with --artist and --track")
-	mqadec              = flag.Bool("mqadec", true, "toggle MQA decoding")
-	mqarend             = flag.Bool("mqarend", false, "toggle MQA rendering")
-	profile             = flag.String("profile", "", "Dump runtime trace to specified file")
-	targetSpl           = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
-	noiseSpl            = flag.Float64("noise", 0.0, "add white noise (negative value is with respect to the target SPL, positive - absolute SPL")
-	shuffle             = flag.Bool("shuffle", false, "toggle shuffle mode.")
-	jitter              = flag.Bool("jitter", false, "toggle jitter logging")
-	search              = flag.Bool("find", false, "toggle find dialog at startup")
-	phase               = flag.String("phase", "goldilocks", "resampler filter phase response (minimum, intermediate, archimago's goldilocks or linear)")
-	distance            = flag.Float64("distance", 1.0, "distance to speakers (applies to speakers only)")
-	processingChannel   = make(chan *tidalapi.Track, 1)
-	playerChannel       = make(chan string, 1)
-	playerStatusChannel = make(chan int, 1)
-	TUIChannel          = make(chan int, 1)
-	tracks              []*tidalapi.Track
-	app                 = tview.NewApplication()
-	tracklist           = tview.NewList()
-	nextTrack           func() (int, *tidalapi.Track)
-	vibeLogFn           = tracksPath + "/vibe.log"
-	jitterLogFn         = tracksPath + "/jitter.log"
-	sessionFn           = tracksPath + "session.json"
-	sinkCfgFn           = tracksPath + "sink.json"
-	sourceCfgFn         = tracksPath + "source.json"
-	vibeLog             *os.File
-	jitterLog           *os.File
-	vibeLogger          *log.Logger
-	jitterLogger        *log.Logger
+	session              *tidalapi.Session
+	track                = flag.Int("track", -1, "provide Tidal track ID.")
+	album                = flag.Int("album", -1, "provide Tidal album ID.")
+	playlist             = flag.String("playlist", "", "provide Tidal playlist ID.")
+	artist               = flag.Int("artist", -1, "provide Tidal artist ID.")
+	radio                = flag.Bool("radio", false, "toggle radio (works with --artist and --track")
+	mqadec               = flag.Bool("mqadec", true, "toggle MQA decoding")
+	mqarend              = flag.Bool("mqarend", false, "toggle MQA rendering")
+	profile              = flag.String("profile", "", "Dump runtime trace to specified file")
+	targetSpl            = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
+	noiseSpl             = flag.Float64("noise", 0.0, "add white noise (negative value is with respect to the target SPL, positive - absolute SPL")
+	shuffle              = flag.Bool("shuffle", false, "toggle shuffle mode.")
+	jitter               = flag.Bool("jitter", false, "toggle jitter logging")
+	search               = flag.Bool("find", false, "toggle find dialog at startup")
+	phase                = flag.String("phase", "goldilocks", "resampler filter phase response (minimum, intermediate, archimago's goldilocks or linear)")
+	distance             = flag.Float64("distance", 1.0, "distance to speakers (applies to speakers only)")
+	processingChannel    = make(chan *tidalapi.Track, 1)
+	playerChannel        = make(chan string, 1)
+	playerStatusChannel  = make(chan int, 1)
+	TUIChannel           = make(chan int, 1)
+	tracks               []*tidalapi.Track
+	app                  = tview.NewApplication()
+	tracklist            = tview.NewList()
+	nextTrack            func() (int, *tidalapi.Track)
+	homeDir, _           = os.UserHomeDir()
+	userFolderPathSuffix = "/.vibe/"
+	tracksPathSuffix     = "/tracks/"
+	configPathSuffix     = "/config/"
+	logPathSuffix        = "/logs/"
+	userFolderPath       = filepath.Join(homeDir, userFolderPathSuffix)
+	tracksPath           = filepath.Join(userFolderPath, tracksPathSuffix)
+	logsPath             = filepath.Join(userFolderPath, logPathSuffix)
+	configPath           = filepath.Join(userFolderPath, configPathSuffix)
+	vibeLogFn            = filepath.Join(logsPath, "vibe.log")
+	jitterLogFn          = filepath.Join(logsPath, "jitter.log")
+	sessionFn            = filepath.Join(configPath, "session.json")
+	sinkCfgFn            = filepath.Join(configPath, "sink.json")
+	sourceCfgFn          = filepath.Join(configPath, "source.json")
+	vibeLog              *os.File
+	jitterLog            *os.File
+	vibeLogger           *log.Logger
+	jitterLogger         *log.Logger
 )
 
 func TUI() {
@@ -59,6 +69,11 @@ func main() {
 
 	flag.Parse()
 
+	err := takeCareOfUserFolder()
+	if err != nil {
+		vibeLogger.Fatal(err)
+	}
+
 	openLogs()
 	defer closeLogs()
 
@@ -66,11 +81,6 @@ func main() {
 
 	go jitterWatch()
 	defer close(timeChannel)
-
-	err := takeCareOfTracksFolder()
-	if err != nil {
-		vibeLogger.Fatal(err)
-	}
 
 	err = cleanupProcessedTracks()
 	if err != nil {
