@@ -292,11 +292,15 @@ func MQARender(fname string) (string, error) {
 	return outname, nil
 }
 
+func splStereoToMono(spl float64) float64 {
+	return spl - 3.0
+}
+
 func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) (float64, float64) {
 	rtot := src.Rl + sink.R
 	vl := src.Vout * (sink.R / rtot)
 	splMax := sink.Sensitivity + 20.*math.Log10(vl)
-	targetSplRel := *targetSpl - splMax
+	targetSplRel := splStereoToMono(*targetSpl) - splMax
 	distanceLoss := 20. * math.Log10(*distance)
 	gain := math.Round(targetSplRel - loudness.I + distanceLoss)
 	return gain, splMax
