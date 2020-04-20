@@ -15,7 +15,7 @@ var (
 		NewSink("Sennheiser PX90", 35.3, 104.5, ""),
 		NewSink("95 db SPL at full scale", 100e3, 95, ""),
 		NewSink("Triangle Plaisir Kari", 6.0, 90.0, ""),
-		NewSink("Triangle Plaisir Kari (equalized)", 6.0, 85.0, "equalizer 73.7 1.06q -7.6 equalizer 9515 1.0q -7.7"),
+		NewSink("Triangle Plaisir Kari (equalized)", 6.0, 80.0, "equalizer 70.8 1.0q -12.6 equalizer 8902 1.0q -9.9 equalizer 17839 1.0q -9.2 equalizer 197.5 1.0q -4.5 equalizer 2095 1.0q -4.7 equalizer 4342 1.0q -2.7 equalizer 11882 1.549q -2.7 equalizer 1522 1.0q -0.6 equalizer 774.0 2.6q -1.9 equalizer 386 5.0q -3.3 equalizer 325 5.0q -1.5"),
 	}
 
 	sinkNum int
