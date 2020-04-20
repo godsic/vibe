@@ -23,6 +23,7 @@ var (
 	mqarend              = flag.Bool("mqarend", false, "toggle MQA rendering")
 	profile              = flag.String("profile", "", "Dump runtime trace to specified file")
 	targetSpl            = flag.Float64("loudness", 75.0, "target percieved loudness in db SPL")
+	mixSpl               = flag.Float64("mixloudness", 75.0, "mixing loudness in db SPL")
 	noiseSpl             = flag.Float64("noise", 0.0, "add white noise (negative value is with respect to the target SPL, positive - absolute SPL")
 	shuffle              = flag.Bool("shuffle", false, "toggle shuffle mode.")
 	jitter               = flag.Bool("jitter", false, "toggle jitter logging")

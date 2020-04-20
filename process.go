@@ -47,7 +47,7 @@ var (
 )
 
 var (
-	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -e signed-integer -b %d %s gain %+.2g rate -a -d 33 -p %d -t -b 92 %d %s"
+	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -e signed-integer -b %d %s gain %+.2g loudness %v %v rate -a -d 33 -p %d -t -b 92 %d %s"
 	ffmpegArgs   = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	noiseArgs    = "-G %s -b 32 -e float -t wav %s synth whitenoise gain %+.2g"
 	mixNoiseArgs = "-G -m %s %s -b 32 -e float -t wav %s"
@@ -80,8 +80,9 @@ func soxResample(fname string, gain float64, src *Source, sink *Sink) (string, e
 	} else {
 		SoxArgs = "dither"
 	}
-
-	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, gain, phaseMap[*phase], src.SampleRate, SoxArgs)
+	loudGain := *targetSpl - *mixSpl
+	flatGain := gain - loudGain
+	args := fmt.Sprintf(soxArgs, fname, src.SampleBits, outname, flatGain, loudGain, *mixSpl, phaseMap[*phase], src.SampleRate, SoxArgs)
 	vibeLogger.Println(args)
 	cmd := exec.Command("sox", strings.Split(args, " ")...)
 	_, err = cmd.CombinedOutput()
