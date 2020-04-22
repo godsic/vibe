@@ -108,7 +108,7 @@ func loopovertracks() {
 		if err != nil {
 			vibeLogger.Println(err)
 		}
-		for buffer.Len() != 0 {
+		for buffer.b.Len() != 0 {
 			time.Sleep(500 * time.Millisecond)
 		}
 	}

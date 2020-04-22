@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -12,12 +13,16 @@ import (
 	wav "github.com/youpy/go-wav"
 )
 
+type SafeBuffer struct {
+	b   bytes.Buffer
+	mux sync.Mutex
+}
+
 var (
 	device        = new(malgo.Device)
 	deviceConfig  = malgo.DefaultDeviceConfig()
 	playerCtl     = make(chan int)
-	buffer        bytes.Buffer
-	bufferMutex   sync.Mutex
+	buffer        SafeBuffer
 	contextConfig = malgo.ContextConfig{ThreadPriority: malgo.ThreadPriorityRealtime,
 		Alsa: malgo.AlsaContextConfig{UseVerboseDeviceEnumeration: 1},
 	}
@@ -103,15 +108,19 @@ func initSource() (err error) {
 
 	// This is the function that's used for sending more data to the device for playback.
 	onData := func(outputSamples, inputSamples []byte, frameCount uint32) {
+		runtime.LockOSThread()
+		buffer.mux.Lock()
 		if *jitter {
 			tIn := time.Now()
-			n, _ := buffer.Read(outputSamples)
+			n, _ := buffer.b.Read(outputSamples)
 			tOut := time.Now()
 			jd := jitterData{timeIn: tIn, timeOut: tOut, requestedBytes: frameCount, readBytes: n}
 			timeChannel <- jd
 		} else {
-			buffer.Read(outputSamples)
+			buffer.b.Read(outputSamples)
 		}
+		buffer.mux.Unlock()
+		runtime.UnlockOSThread()
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{
@@ -154,9 +163,9 @@ func loadFileIntoBuffer(fname string) error {
 
 	r := wav.NewReader(f)
 
-	bufferMutex.Lock()
-	buffer.Reset()
-	buffer.ReadFrom(r)
-	bufferMutex.Unlock()
+	buffer.mux.Lock()
+	buffer.b.Reset()
+	buffer.b.ReadFrom(r)
+	buffer.mux.Unlock()
 	return nil
 }
