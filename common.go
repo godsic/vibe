@@ -44,7 +44,7 @@ func takeCareOfUserFolder() (err error) {
 }
 
 func cleanupProcessedTracks() (err error) {
-	files, err := filepath.Glob(tracksPath + "*" + processedTracksSuffix)
+	files, err := filepath.Glob(filepath.Join(tracksPath, "*"+processedTracksSuffix))
 	if err != nil {
 		return err
 	}
