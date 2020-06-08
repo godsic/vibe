@@ -251,9 +251,6 @@ func CanMQARender() bool {
 }
 
 func MQADecode(fname string) (string, error) {
-	if *mqadec == false {
-		return fname, nil
-	}
 
 	if !CanMQADecode() {
 		return fname, errors.New("MQA Decoder is not avaliable")
@@ -272,9 +269,6 @@ func MQADecode(fname string) (string, error) {
 }
 
 func MQARender(fname string) (string, error) {
-	if *mqarend == false {
-		return fname, nil
-	}
 
 	if !CanMQARender() {
 		return fname, errors.New("MQA Renderer is not avaliable")
@@ -314,12 +308,15 @@ func processTrack(t *tidalapi.Track) (string, error) {
 	}
 
 	if t.AudioQuality == tidalapi.Quality[tidalapi.MASTER] {
-		decFname, _ := MQADecode(fname)
-		defer os.Remove(decFname)
-		rendFname, _ := MQARender(decFname)
-		defer os.Remove(rendFname)
-		fname = rendFname
+		if *mqadec {
+			fname, _ = MQADecode(fname)
+			defer os.Remove(fname)
+		}
 
+		if *mqarend {
+			fname, _ := MQARender(fname)
+			defer os.Remove(fname)
+		}
 	}
 
 	loud, err := ffmpegLoudnorm(fname)
