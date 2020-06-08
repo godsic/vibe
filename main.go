@@ -89,7 +89,7 @@ func main() {
 	}
 
 	os.Setenv("TCELL_TRUECOLOR", "disable")
-	session = tidalapi.NewSession(tidalapi.LOSSLESS)
+	session = tidalapi.NewSession(tidalapi.MASTER)
 
 	go TUI()
 
