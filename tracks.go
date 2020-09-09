@@ -23,7 +23,7 @@ func getcmdrequest() (string, interface{}) {
 	case len(*playlist) > 0:
 		return tidalapi.PLAYLISTTRACKS, *playlist
 	default:
-		return tidalapi.FAVORITETRACKS, session.User
+		return tidalapi.FAVORITETRACKS, session.UserID
 	}
 }
 
