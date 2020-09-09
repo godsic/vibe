@@ -30,6 +30,7 @@ var (
 	search               = flag.Bool("find", false, "toggle find dialog at startup")
 	phase                = flag.String("phase", "goldilocks", "resampler filter phase response (minimum, intermediate, archimago's goldilocks or linear)")
 	distance             = flag.Float64("distance", 1.0, "distance to speakers (applies to speakers only)")
+	legacyLogin          = flag.Bool("legacy-login", false, "toggle legacy, non-OAuth2 login")
 	processingChannel    = make(chan *tidalapi.Track, 1)
 	playerChannel        = make(chan string, 1)
 	playerStatusChannel  = make(chan int, 1)
@@ -96,7 +97,11 @@ func main() {
 	err = session.LoadSession(sessionFn)
 
 	if err != nil && session.IsValid() == false {
-		err = credentials()
+		if *legacyLogin {
+			err = credentials()
+		} else {
+			err = credentials2()
+		}
 		if err != nil {
 			vibeLogger.Fatal(err)
 		}
