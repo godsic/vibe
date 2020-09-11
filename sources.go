@@ -13,6 +13,7 @@ var (
 		NewSource("Apple USB-C to 3.5mm Headphone Adapter (US model A2049)", 1.039, 0.9, 48000, 24, "PCM"),
 		NewSource("Apple USB-C to 3.5mm Headphone Adapter (EU model A2155)", 0.5, 0.9, 48000, 24, "PCM"),
 		NewSource("Onkyo A-9010 (TOSLINK)", 27.0, 0.09, 48000, 32, "Software"),
+		NewSource("Onkyo A-9010 (LINE, max 1V input)", 16.0, 0.09, 48000, 32, "Software"),
 	}
 	sourceNum int
 	source    = NewAudioDevice(SOURCE)

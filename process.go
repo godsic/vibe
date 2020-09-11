@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-audio/wav"
 	"github.com/godsic/tidalapi"
 )
 
@@ -47,8 +48,16 @@ var (
 )
 
 var (
+	mqaModeMap = map[string]string{
+		"host":   "",
+		"podman": "podman run --rm -it --privileged=true -v %s:%s localhost/mqa",
+		"docker": "docker run --rm -it -v %s:%s localhost/mqa",
+	}
+)
+
+var (
 	soxArgs      = "--buffer 524288 --multi-threaded %s -t wav -e signed-integer -b %d %s gain %+.2g loudness %v %v rate -a -d 33 -p %d -t -b 92 %d %s"
-	ffmpegArgs   = "-guess_layout_max 0 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
+	ffmpegArgs   = "-guess_layout_max 10 -y -hide_banner -i %s -filter_complex ebur128=peak=true -f null -"
 	noiseArgs    = "-G %s -b 32 -e float -t wav %s synth whitenoise gain %+.2g"
 	mixNoiseArgs = "-G -m %s %s -b 32 -e float -t wav %s"
 	drArgs       = "-hide_banner -i %s -af drmeter -f null /dev/null"
@@ -234,7 +243,7 @@ func downloadTrack(t *tidalapi.Track) (string, error) {
 	return fname, nil
 }
 
-func CanMQADecode() bool {
+func canMQADecode() bool {
 	_, err := exec.LookPath("mqadec")
 	if err != nil {
 		return false
@@ -242,7 +251,7 @@ func CanMQADecode() bool {
 	return true
 }
 
-func CanMQARender() bool {
+func canMQARender() bool {
 	_, err := exec.LookPath("mqarender")
 	if err != nil {
 		return false
@@ -250,17 +259,21 @@ func CanMQARender() bool {
 	return true
 }
 
-func MQADecode(fname string) (string, error) {
+func mqaDecode(fname string) (string, error) {
 
-	if !CanMQADecode() {
+	if *mqaMode == "host" && !canMQADecode() {
 		return fname, errors.New("MQA Decoder is not avaliable")
 	}
 
-	// fmt.Printf("MQA Decoding\t")
-
 	outname := fname + ".mqadecoded"
 
-	cmd := exec.Command("mqadec", fname, outname)
+	args := fmt.Sprintf(mqaModeMap[*mqaMode], tracksPath, tracksPath)
+	args = strings.TrimSpace(fmt.Sprintf("%s mqadec %s %s", args, fname, outname))
+	commands := strings.Split(args, " ")
+
+	vibeLogger.Println(commands)
+
+	cmd := exec.Command(commands[0], commands[1:]...)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return fname, err
@@ -268,28 +281,77 @@ func MQADecode(fname string) (string, error) {
 	return outname, nil
 }
 
-func MQARender(fname string) (string, error) {
+func mqaRender(fname string) (string, error) {
 
-	if !CanMQARender() {
+	if *mqaMode == "host" && !canMQARender() {
 		return fname, errors.New("MQA Renderer is not avaliable")
 	}
 
-	// fmt.Printf("MQA Rendering\t")
-
 	outname := fname + ".mqarendered"
+	args := fmt.Sprintf(mqaModeMap[*mqaMode], tracksPath, tracksPath)
+	args = strings.TrimSpace(fmt.Sprintf("%s mqarender %s %s", args, fname, outname))
+	commands := strings.Split(args, " ")
 
-	cmd := exec.Command("mqarender", fname, outname)
+	vibeLogger.Println(commands)
+
+	cmd := exec.Command(commands[0], commands[1:]...)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return fname, err
 	}
 	return outname, nil
+}
+
+func mqaProcess(inName string) (outName string, err error) {
+
+	outName = inName + ".mqa"
+	fname := inName
+
+	_, err = os.Stat(outName)
+
+	if *mqaUseCache && err == nil {
+		return outName, nil
+	}
+
+	fname, err = mqaDecode(fname)
+	defer os.Remove(fname)
+	if err != nil {
+		return inName, err
+	}
+
+	decodedSampleRate, _ := getWavSampleRate(fname)
+
+	if *mqaRend && decodedSampleRate > 48000 {
+		fname, err = mqaRender(fname)
+		defer os.Remove(fname)
+		if err != nil {
+			return inName, err
+		}
+	}
+
+	os.Rename(fname, outName)
+	return outName, nil
 }
 
 func splStereoToMono(spl float64) float64 {
 	return spl - 3.0
 }
 
+func getWavSampleRate(fname string) (sampleRate uint32, err error) {
+
+	f, err := os.Open(fname)
+	defer f.Close()
+
+	if err != nil {
+		return 0, err
+	}
+
+	d := wav.NewDecoder(f)
+	d.ReadInfo()
+
+	return d.SampleRate, nil
+
+}
 func getGain(src *Source, sink *Sink, loudness *LoudnessInfo) (float64, float64) {
 	rtot := src.Rl + sink.R
 	vl := src.Vout * (sink.R / rtot)
@@ -307,15 +369,10 @@ func processTrack(t *tidalapi.Track) (string, error) {
 		return "", err
 	}
 
-	if t.AudioQuality == tidalapi.Quality[tidalapi.MASTER] {
-		if *mqadec {
-			fname, _ = MQADecode(fname)
-			defer os.Remove(fname)
-		}
-
-		if *mqarend {
-			fname, _ := MQARender(fname)
-			defer os.Remove(fname)
+	if t.AudioQuality == tidalapi.Quality[tidalapi.MASTER] && *mqaMode != "off" {
+		fname, err = mqaProcess(fname)
+		if err != nil {
+			vibeLogger.Println(err)
 		}
 	}
 
