@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/pkg/browser"
 
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -51,7 +51,7 @@ func credentials2() error {
 
 		err := session.LoginWithOauth2Code(code)
 		if err != nil {
-			form.SetFieldBackgroundColor(tcell.ColorRed)
+			// form.SetFieldBackgroundColor(Red)
 			app.Draw()
 		} else {
 			done <- 0
